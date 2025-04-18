@@ -1,20 +1,5 @@
 import fs from 'fs';
 
-function main(file: string = 'books.csv'): IBook[] {
-    const fileContents = fs.readFileSync(file, 'utf-8');
-    const lines = fileContents.split('\n');
-    lines.shift(); // Remove the header line
-    console.log("Size before cleaning: " + lines.length);
-    const books = lines.map((line: string): IBook => parseLine(line));
-    console.log("Size after cleaning: " + books.length);
-    const isSequential: boolean = books.every(
-        (thiz: IBook, i: number, collection: IBook[]): boolean =>
-            !i || thiz.book_id ===  collection[i - 1].book_id + 1
-    );
-    console.log('isSequential: ' + isSequential);
-    return books;
-}
-
 interface IRatings {
     average: number;
     count: number;
@@ -40,6 +25,22 @@ interface IBook {
     ratings: IRatings;
     icons: IUrlIcon;
 }
+
+function parseBookCSV(file: string): IBook[] {
+    const fileContents: string = fs.readFileSync(file, 'utf-8');
+    const lines: string[] = fileContents.split('\n');
+    lines.shift(); // Remove the header line
+    const books: IBook[] = lines.map(parseLine);
+    const isSequential: boolean = books.every(
+        (thiz: IBook, i: number, collection: IBook[]): boolean =>
+            !i || thiz.book_id ===  collection[i - 1].book_id + 1
+    );
+    console.log('One book object per csv line: '
+        + (lines.length === books.length));
+    console.log('Book ids are sequential: ' + isSequential);
+    return books;
+}
+
 
 function parseLine(line: string): IBook {
     const re = new RegExp(
@@ -97,5 +98,5 @@ function parseLine(line: string): IBook {
 }
 
 if (require.main === module) {
-    main();
+    console.log(parseBookCSV('books.csv'));
 }
