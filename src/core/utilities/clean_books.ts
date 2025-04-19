@@ -98,5 +98,8 @@ function parseLine(line: string): IBook {
 }
 
 if (require.main === module) {
-    console.log(parseBookCSV('books.csv'));
+    for(const book of parseBookCSV('books.csv')){
+        if(book.title != book.original_title)
+        console.log(book.title + "\n\t" + book.original_title);
+    }
 }

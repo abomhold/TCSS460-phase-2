@@ -16,10 +16,10 @@
         "deploy": "git add . && git commit -m Heroku && git push heroku master"
     },
     "keywords": [],
-    "author": "Charles Bryan",
+    "author": "Austin Bomhold, ...your names",
     "repository": {
         "type": "git",
-        "url": "https://github.com/cfb3/cfb3-tcss4540-labs-23sp"
+        "url": "https://github.com/abomhold/TCSS460-phase-2"
     },
     "engines": {
         "node": "20.17.0"
