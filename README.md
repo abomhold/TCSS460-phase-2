@@ -17,7 +17,7 @@ Created by:
 - Austin Bomhold
   - Deployed Heroku App 
   - Github Repo
-  - Setup backed project
+  - Setup backend project
 - Johan Hernandez
 - Sopheanith Ny
 - Yonas Omega
