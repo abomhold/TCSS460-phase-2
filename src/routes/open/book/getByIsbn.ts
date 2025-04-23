@@ -8,7 +8,7 @@ export const getByIsbn = (req: Request, res: Response) => {
     const theQuery = 'SELECT * FROM books WHERE isbn13 = $1';
     if (!isValidIsbn(isbn)) {
         res.status(400).json({
-            error: 'Invalid ISBN format. It should be a 13-digit number.',
+            message: 'Invalid ISBN format. It should be a 13-digit number.',
         });
     } else {
         pool.query(theQuery, [isbn])
@@ -30,7 +30,7 @@ export const getByIsbn = (req: Request, res: Response) => {
                     error
                 );
                 res.status(500).json({
-                    error: 'An error occurred while fetching the book.',
+                    message: 'An error occurred while fetching the book.',
                 });
             });
     }
