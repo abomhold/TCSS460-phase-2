@@ -1,0 +1,8 @@
+# Ignore auto-generated directories
+node_modules
+dist
+build
+data
+docs
+.vscode/
+.idea/
