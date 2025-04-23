@@ -1,7 +1,7 @@
 /**
  * Checks the parameter to see if it is a a String.
  *
- * @param {any} candidate the value to check
+ * @param {unknown} candidate the value to check
  * @returns true if the parameter is a String0, false otherwise
  */
 function isString(candidate: unknown): candidate is string {
@@ -11,7 +11,7 @@ function isString(candidate: unknown): candidate is string {
 /**
  * Checks the parameter to see if it is a a String with a length greater than 0.
  *
- * @param {any} candidate the value to check
+ * @param {unknown} candidate the value to check
  * @returns true if the parameter is a String with a length greater than 0, false otherwise
  */
 function isStringProvided(candidate: unknown): boolean {
@@ -21,7 +21,7 @@ function isStringProvided(candidate: unknown): boolean {
 /**
  * Checks the parameter to see if it can be converted into a number.
  *
- * @param {any} candidate the value to check
+ * @param {unknown} candidate the value to check
  * @returns true if the parameter is a number, false otherwise
  */
 function isNumberProvided(candidate: unknown): boolean {
@@ -46,9 +46,22 @@ function isNumber(x: unknown): x is number {
 // for example: isNumericProvided, isValidPassword, isValidEmail, etc
 // don't forget to export any
 
+/**
+ * Checks that the parameter is a string and matches the ISBN13 format.
+ * @param candidate the value to check
+ * @returns true if the parameter is a valid ISBN13, false otherwise
+ */
+function isValidIsbn(candidate: unknown): boolean {
+    return (
+        isStringProvided(candidate) &&
+        RegExp(/^\d{13}$/).test(String(candidate))
+    );
+}
+
 const validationFunctions = {
     isStringProvided,
     isNumberProvided,
+    isValidIsbn,
 };
 
 export { validationFunctions };
