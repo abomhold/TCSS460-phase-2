@@ -13,7 +13,9 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "format:check": "prettier --check .",
         "format:write": "prettier --write .",
-        "deploy": "git add . && git commit -m Heroku && git push heroku master"
+        "deploy": "git add . && git commit -m Heroku && git push heroku master",
+        "docs:create": "apidoc -i src -o docs",
+        "docs:remove": "rm -rf ./docs"
     },
     "keywords": [],
     "author": "Austin Bomhold, ...your names",

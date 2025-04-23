@@ -244,7 +244,7 @@ messageRouter.get(
  */
 messageRouter.get('/:name', (request: Request, response: Response) => {
     const theQuery = 'SELECT name, message, priority FROM Demo WHERE name = $1';
-    let values = [request.params.name];
+    const values = [request.params.name];
 
     pool.query(theQuery, values)
         .then((result) => {
@@ -289,7 +289,7 @@ messageRouter.get('/:name', (request: Request, response: Response) => {
 messageRouter.patch(
     '/',
     mwValidNameMessageBody,
-    (request: Request, response: Response, next: NextFunction) => {
+    (request: Request, response: Response) => {
         const theQuery =
             'UPDATE Demo SET message = $1 WHERE name = $2 RETURNING *';
         const values = [request.body.message, request.body.name];
