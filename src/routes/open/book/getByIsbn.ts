@@ -16,6 +16,7 @@ export const getByIsbn = (req: Request, res: Response) => {
                 if (result.rowCount === 0) {
                     res.status(404).json({
                         message: 'Book not found.',
+                        data: [],
                     });
                 } else {
                     res.status(200).json({
