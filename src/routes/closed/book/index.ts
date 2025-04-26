@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import { createBook } from './createBook';
-import { getByAuthor } from './getByAuthor';
-import { getByIsbn } from './getByIsbn';
+import { getByQuery } from './getByQuery';
+import { getByBookId } from './getByBookId';
 
 const bookRouter: Router = express.Router();
 
@@ -12,10 +12,10 @@ bookRouter.post('/', createBook);
 /**
  * Documentation goes here...
  */
-bookRouter.get('/', getByAuthor);
+bookRouter.get('/', getByQuery);
 /**
  * Documentation goes here...
  */
-bookRouter.get('/:isbn', getByIsbn);
+bookRouter.get('/:bookId', getByBookId);
 
 export { bookRouter };
