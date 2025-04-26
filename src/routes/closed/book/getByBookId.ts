@@ -1,0 +1,28 @@
+import { Request, Response } from 'express';
+import { pool } from '../../../core/utilities';
+
+export const getByBookId = (req: Request, res: Response) => {
+    const bookId = req.params.bookId;
+
+    pool.query('SELECT * FROM books WHERE book_id = $1', [bookId])
+        .then((result) => {
+            if (result.rowCount === 0) {
+                res.status(404).json({
+                    message: 'Book not found.',
+                    data: [],
+                });
+            } else {
+                res.status(200).json({
+                    message: `(${result.rowCount}) Book(s) found.`,
+                    data: result.rows,
+                });
+            }
+        })
+        .catch((error) => {
+            console.error('Error executing query in /book:', error);
+            res.status(500).json({
+                message: 'Internal Server Error',
+                data: [],
+            });
+        });
+};
