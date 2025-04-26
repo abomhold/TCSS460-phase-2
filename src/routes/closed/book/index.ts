@@ -12,7 +12,7 @@ bookRouter.post('/', createBook);
 /**
  * @api {get} /book Request to retrieve book(s) by ISBN13 or Author
  *
- * @apiDescription Retrieves one or more book entries by searching with an ISBN13 or author name. 
+ * @apiDescription Retrieves one or more book entries by searching with an ISBN13 or author name.
  * Query parameters are optional but at least one must be provided. If multiple parameters are passed, they are combined with logical AND.
  * ISBN13 is validated to ensure it is a proper 13-digit number.
  *
