@@ -58,6 +58,7 @@ _4/20/2025 - 4/26/2025_
     - Contributed to testing all routes
 - Yonas Omega
     - Contributed to testing all routes
+    - Populated production DB with all books and updated schema
 
 ### Meetings
 
