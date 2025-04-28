@@ -23,7 +23,7 @@ CREATE TABLE Account_Credential (Credential_ID SERIAL PRIMARY KEY,
                       FOREIGN KEY(Account_ID) REFERENCES Account(Account_ID)
 );
 
-CREATE TABLE BOOKS (id INT PRIMARY KEY,
+CREATE TABLE BOOKS (id SERIAL PRIMARY KEY,
         isbn13 BIGINT,
         authors TEXT,
         publication_year INT,
@@ -44,3 +44,7 @@ COPY books
 FROM '/docker-entrypoint-initdb.d/books.csv'
 DELIMITER ','
 CSV HEADER;
+
+-- This query ensures the auto-incrementing id starts at the next 
+-- number after the COPY command above
+SELECT SETVAL('books_id_seq', (SELECT MAX(id) FROM books));

@@ -5,10 +5,10 @@ import {
     queryStringToSQL,
 } from '../../../core/utilities';
 
-const { isValidIsbn } = validationFunctions;
+const { isValidISBN } = validationFunctions;
 
 export const getByQuery = async (req: Request, res: Response) => {
-    if (req.query.isbn13 && !isValidIsbn(req.query.isbn13)) {
+    if (req.query.isbn13 && !isValidISBN(req.query.isbn13)) {
         res.status(400).json({
             message:
                 'Invalid ISBN format. Please provide a valid 13-digit ISBN.',

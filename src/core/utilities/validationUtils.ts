@@ -53,39 +53,22 @@ function isNumber(x: unknown): x is number {
  * @returns boolean indicating if ISBN format is valid
  */
 function isValidISBN(isbn: unknown): boolean {
-  if (!isStringProvided(isbn)) {
+    if (!isStringProvided(isbn)) {
+        return false;
+    }
+    // At this point, we know isbn is a string because isStringProvided checks that remove hyphens or spaces
+    const cleanedISBN = (isbn as string).replace(/[-\s]/g, "");
+
+    // Check if it's a valid ISBN-13 (13 digits)
+    if (/^\d{13}$/.test(cleanedISBN)) {
+        return true;
+    }
     return false;
-  }
-  // At this point, we know isbn is a string because isStringProvided checks that remove hyphens or spaces
-  const cleanedISBN = (isbn as string).replace(/[-\s]/g, "");
-
-  // Check if it's a valid ISBN-13 (13 digits)
-  if (/^\d{13}$/.test(cleanedISBN)) {
-    return true;
-  }
-  // Check if it's a valid ISBN-10 (10 digits or 9 digits followed by X)
-  if (/^\d{9}[\dX]$/.test(cleanedISBN)) {
-    return true;
-  }
-  return false;
-}
-
-/**
- * Checks that the parameter is a string and matches the ISBN13 format.
- * @param candidate the value to check
- * @returns true if the parameter is a valid ISBN13, false otherwise
- */
-function isValidIsbn(candidate: unknown): boolean {
-    return (
-        isStringProvided(candidate) &&
-        RegExp(/^\d{13}$/).test(String(candidate))
-    );
 }
 
 const validationFunctions = {
     isStringProvided,
     isNumberProvided,
-    isValidIsbn,
     isValidISBN, //declared
 };
 
