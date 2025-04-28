@@ -207,6 +207,13 @@ bookRouter.get('/', getByQuery);
  *       ]
  *     }
  *
+ * @apiError (Error 400) {String} message Invalid Book ID
+ * @apiErrorExample {json} Error Response (Invalid Book ID):
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "message": "Invalid Book ID"
+ *     }
+ *
  * @apiError (Error 404) {String} message Book not found.
  * @apiErrorExample {json} Error Response (Book Not Found):
  *     HTTP/1.1 404 Not Found
