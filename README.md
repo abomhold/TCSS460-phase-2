@@ -45,15 +45,19 @@ _4/20/2025 - 4/26/2025_
 ### Contributions
 
 - Austin Bomhold
+    - Helped with logic behind creating a book
 - Johan Hernandez
     - Implemented routes for getting book by ISBN13 and author
     - Documented routes for getting book by ISBN13 and author
     - Helped implement route for creating a book
     - Slightly modified Postgres init script
+    - Contributed to testing all routes
 - Sopheanith Ny
     - Implemented route for creating a book
     - Documented route for creating a book
+    - Contributed to testing all routes
 - Yonas Omega
+    - Contributed to testing all routes
 
 ### Meetings
 
