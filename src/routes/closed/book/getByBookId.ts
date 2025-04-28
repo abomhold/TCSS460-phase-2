@@ -4,7 +4,7 @@ import { pool } from '../../../core/utilities';
 export const getByBookId = (req: Request, res: Response) => {
     const bookId = req.params.bookId;
 
-    pool.query('SELECT * FROM books WHERE book_id = $1', [bookId])
+    pool.query('SELECT * FROM books WHERE id = $1', [bookId])
         .then((result) => {
             if (result.rowCount === 0) {
                 res.status(404).json({
