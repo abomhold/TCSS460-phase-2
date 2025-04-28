@@ -46,6 +46,30 @@ function isNumber(x: unknown): x is number {
 // for example: isNumericProvided, isValidPassword, isValidEmail, etc
 // don't forget to export any
 
+//Sopheanith
+/**
+ * Validates ISBN format (supports ISBN-10 and ISBN-13)
+ * @param isbn The ISBN string to validate
+ * @returns boolean indicating if ISBN format is valid
+ */
+function isValidISBN(isbn: unknown): boolean {
+  if (!isStringProvided(isbn)) {
+    return false;
+  }
+  // At this point, we know isbn is a string because isStringProvided checks that remove hyphens or spaces
+  const cleanedISBN = (isbn as string).replace(/[-\s]/g, "");
+
+  // Check if it's a valid ISBN-13 (13 digits)
+  if (/^\d{13}$/.test(cleanedISBN)) {
+    return true;
+  }
+  // Check if it's a valid ISBN-10 (10 digits or 9 digits followed by X)
+  if (/^\d{9}[\dX]$/.test(cleanedISBN)) {
+    return true;
+  }
+  return false;
+}
+
 /**
  * Checks that the parameter is a string and matches the ISBN13 format.
  * @param candidate the value to check
@@ -62,6 +86,7 @@ const validationFunctions = {
     isStringProvided,
     isNumberProvided,
     isValidIsbn,
+    isValidISBN, //declared
 };
 
 export { validationFunctions };

@@ -8,6 +8,103 @@ const bookRouter: Router = express.Router();
 /**
  * Documentation goes here...
  */
+
+/**
+ * @api {post} /c/book Create a new book
+ *
+ * @apiDescription Creates a new book entry in the database. The ISBN is validated to ensure it is in a proper format (ISBN-10 or ISBN-13).
+ * Checks are performed to prevent adding duplicate books with the same ISBN.
+ *
+ * @apiName CreateBook
+ * @apiGroup Book
+ * 
+ * @apiHeader {String} Authorization JWT token in the format "Bearer {token}"
+ *
+ * @apiBody {String} isbn ISBN of the book (ISBN-10 or ISBN-13 format)
+ * @apiBody {String} title Title of the book
+ * @apiBody {String} author Author of the book
+ * @apiBody {Number} [year] Publication year of the book
+ * @apiBody {String} [genre] Genre of the book
+ * @apiBody {String} [description] Description of the book
+ * @apiBody {String} [publisher] Publisher of the book
+ *
+ * @apiSuccess {Boolean} success Indicates if the operation was successful
+ * @apiSuccess {String} message Success message
+ * @apiSuccess {Object} data The created book object
+ * @apiSuccess {String} data.isbn ISBN of the book
+ * @apiSuccess {String} data.title Title of the book
+ * @apiSuccess {String} data.author Author of the book
+ * @apiSuccess {Number} [data.year] Publication year
+ * @apiSuccess {String} [data.genre] Genre of the book
+ * @apiSuccess {String} [data.description] Description of the book
+ * @apiSuccess {String} [data.publisher] Publisher of the book
+ *
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 201 Created
+ *     {
+ *       "success": true,
+ *       "message": "Book created successfully",
+ *       "data": {
+ *         "isbn": "9781234567897",
+ *         "title": "Sample Book Title",
+ *         "author": "John Doe",
+ *         "year": 2023,
+ *         "genre": "Fiction",
+ *         "description": "A sample book description",
+ *         "publisher": "Sample Publisher"
+ *       }
+ *     }
+ *
+ * @apiError (Error 400) {Boolean} success false
+ * @apiError (Error 400) {String} message Error message
+ * @apiErrorExample {json} Error Response (Invalid ISBN):
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "success": false,
+ *       "message": "Invalid ISBN format"
+ *     }
+ *
+ * @apiErrorExample {json} Error Response (Missing Title):
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "success": false,
+ *       "message": "Title is required"
+ *     }
+ *
+ * @apiErrorExample {json} Error Response (Missing Author):
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "success": false,
+ *       "message": "Author is required"
+ *     }
+ *
+ * @apiErrorExample {json} Error Response (Invalid Year):
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "success": false,
+ *       "message": "Year must be a valid number"
+ *     }
+ *
+ * @apiError (Error 409) {Boolean} success false
+ * @apiError (Error 409) {String} message Error message
+ * @apiErrorExample {json} Error Response (Duplicate):
+ *     HTTP/1.1 409 Conflict
+ *     {
+ *       "success": false,
+ *       "message": "Book with this ISBN already exists"
+ *     }
+ *
+ * @apiError (Error 500) {Boolean} success false
+ * @apiError (Error 500) {String} message Error message
+ * @apiErrorExample {json} Error Response (Server Error):
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "success": false,
+ *       "message": "Internal server error"
+ *     }
+ */
+//end
+
 bookRouter.post('/', createBook);
 /**
  * @api {get} /book Request to retrieve book(s) by ISBN13 or Author
