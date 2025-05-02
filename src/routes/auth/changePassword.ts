@@ -87,9 +87,9 @@ const isValidPassword = (password: string): boolean =>
 
 passwordRouter.put(
     '/change-password',
-    checkToken, //Use JWT validation middleware
+    checkToken, //Use JWT validation middleware to authenticate users via JWT before password changes
     (request: IJwtRequest, response: Response, next: NextFunction) => {
-        if (isStringProvided(request.body.currentPassword) && isStringProvided(request.body.newPassword)){
+        if (isStringProvided(request.body.currentPassword) && isStringProvided(request.body.newPassword)){ //Check if required password parameters exist
             next();
         } else {
             response.status(400).send({
