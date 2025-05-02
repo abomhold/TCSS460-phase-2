@@ -1,4 +1,5 @@
-import express, { Request, Response, Router, NextFunction, response} from 'express';
+//import express, { Request, Response, Router, NextFunction } from 'express';
+import express, { Response, Router, NextFunction } from 'express';
 import { pool, validationFunctions, credentialingFunctions, } from '../../core/utilities';
 import { checkToken } from '../../core/middleware';
 import { IJwtRequest } from '../../core/models/JwtRequest.model';
@@ -179,4 +180,4 @@ passwordRouter.put(
     }
 );
 
-export {passwordRouter}
+export { passwordRouter };
