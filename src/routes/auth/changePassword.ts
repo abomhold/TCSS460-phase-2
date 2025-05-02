@@ -1,5 +1,5 @@
-// changePassword.ts
 import express, { Request, Response, Router, NextFunction } from 'express';
+import { JwtPayload } from 'jsonwebtoken';
 
 import {
     pool,
@@ -10,10 +10,18 @@ import {
 const isStringProvided = validationFunctions.isStringProvided;
 const generateHash = credentialingFunctions.generateHash;
 
+// Define interface locally to avoid import issues
+interface IJwtRequest extends Request {
+    claims: JwtPayload & {
+        id: number;
+        role?: string;
+    };
+}
+
 const changePasswordRouter: Router = express.Router();
 
 /**
- * @api {put} /password Request to change a user's password
+ * @api {put} /auth/password Request to change a user's password
  * @apiName PutPassword
  * @apiGroup Auth
  * 
@@ -27,13 +35,13 @@ const changePasswordRouter: Router = express.Router();
  * @apiError (400: Missing Parameters) {String} message "Missing required information"
  * @apiError (400: Invalid Credentials) {String} message "Current password is incorrect"
  * @apiError (400: Invalid Password) {String} message "New password must be at least 8 characters"
- * @apiError (401: Unauthorized) {String} message "Auth token is required" or "Invalid auth token"
+ * @apiError (401: Unauthorized) {String} message "Auth token is not supplied"
+ * @apiError (403: Forbidden) {String} message "Token is not valid"
  * @apiError (500: Database Error) {String} message "Server error - contact support"
  */
 changePasswordRouter.put(
-    '/password',
-    // The checkToken middleware will be added in closed/index.ts
-    (request: Request, response: Response, next: NextFunction) => {
+    '/',
+    (request: IJwtRequest, response: Response, next: NextFunction) => {
         // Verify all required fields are provided
         if (
             isStringProvided(request.body.currentPassword) &&
@@ -46,7 +54,7 @@ changePasswordRouter.put(
             });
         }
     },
-    (request: Request, response: Response, next: NextFunction) => {
+    (request: IJwtRequest, response: Response, next: NextFunction) => {
         // Validate new password (must be at least 8 characters)
         if (request.body.newPassword.length > 7) {
             next();
@@ -56,10 +64,9 @@ changePasswordRouter.put(
             });
         }
     },
-    (request: Request, response: Response) => {
-        // You need to adjust this to use your specific way of accessing the user ID from the JWT
-        // @ts-ignore - Depending on how your checkToken middleware adds the decoded user info
-        const userId = request.decoded.id;
+    (request: IJwtRequest, response: Response) => {
+        // Use request.claims to access the user ID from the JWT
+        const userId = request.claims.id;
         
         // First, verify the current password
         const getCredentialsQuery = `
