@@ -1,12 +1,12 @@
 import { Response } from "express";
 import { IJwtRequest } from "../../../core/models";
 import { pool } from "../../../core/utilities";
-import { userHasRatedBook } from "../../../core/utilities/sqlUtils";
+import { getUserBookRating } from "../../../core/utilities/sqlUtils";
 import { validationFunctions } from "../../../core/utilities";
 
 const { isNumberProvided } = validationFunctions;
 
-export const addStar = (req: IJwtRequest, res: Response) => {
+export const addRating = (req: IJwtRequest, res: Response) => {
     const userId = req.claims.id;
     const bookId = req.params.bookId;
 
@@ -39,19 +39,36 @@ export const addStar = (req: IJwtRequest, res: Response) => {
                 });
             } else {
                 const book = result.rows[0];
-                userHasRatedBook(userId, bookId)
-                    .then((hasRated) => {
-                        if (hasRated) {
+                getUserBookRating(userId, bookId)
+                    .then((prevRating) => {
+                        if (prevRating) {
                             res.status(400).json({
                                 message: "This user has already rated this book",
                                 data: book,
                             });
                         } else {
                             // TODO: logic to update rating values here...
-                            res.status(201).json({
-                                message: "Updating book (not implemented yet)",
-                                data: book,
-                            });
+                            const theQuery = `UPDATE books SET rating_${rating}_star = rating_${rating}_star + 1 WHERE id = $1`
+                            pool.query(theQuery, [bookId])
+                                .then((result) => {
+                                    const theQuery = "INSERT INTO ratings VALUES ($1, $2, $3)";
+                                    pool.query(theQuery, [userId, bookId, rating])
+                                        .then((result) => {
+                                            res.status(201).json({
+                                                message: `Updated ratings for book (${bookId})`,
+                                            });
+                                        })
+                                        .catch((error) => {
+                                            res.status(500).json({
+                                                message: "Internal server error"
+                                            });
+                                        });
+                                })
+                                .catch((error) => {
+                                    res.status(500).json({
+                                        message: "Internal server error"
+                                    });
+                                });
                         }
                     })
                     .catch((error) => {

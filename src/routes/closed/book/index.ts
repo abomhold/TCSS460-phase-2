@@ -2,7 +2,7 @@ import express, { Router } from 'express';
 import { createBook } from './createBook';
 import { getByQuery } from './getByQuery';
 import { getByBookId } from './getByBookId';
-import { addStar } from './addStar';
+import { addRating } from './addRating';
 
 const bookRouter: Router = express.Router();
 
@@ -232,5 +232,5 @@ bookRouter.get('/', getByQuery);
  *     }
  */
 bookRouter.get('/:bookId', getByBookId);
-bookRouter.post('/:bookId/stars', addStar)
+bookRouter.post('/:bookId/rating', addRating)
 export { bookRouter };
