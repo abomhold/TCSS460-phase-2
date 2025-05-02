@@ -43,8 +43,10 @@ CREATE TABLE BOOKS (id SERIAL PRIMARY KEY,
 CREATE TABLE RATINGS (
         Account_ID INT,
         book_id INT,
+        rating INT,
         FOREIGN KEY(book_id) REFERENCES BOOKS(id),
-        PRIMARY KEY (Account_ID, book_id)
+        PRIMARY KEY (Account_ID, book_id),
+        CONSTRAINT check_rating_range CHECK (rating BETWEEN 1 AND 5)
 );
 
 COPY books
