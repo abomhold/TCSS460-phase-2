@@ -1,3 +1,5 @@
+import { pool } from "./sql_conn";
+
 const allowedKeys = ['isbn13', 'authors']; // Define allowed query parameters
 
 /**
@@ -30,7 +32,17 @@ const queryStringToSQL = (
     return [query, queryValues];
 };
 
+const userHasRatedBook = async (
+    userId: string,
+    bookId: string
+): Promise<boolean> => {
+    const theQuery = 'SELECT COUNT(account_id) FROM ratings WHERE account_id = $1 AND book_id = $2';
+    const result = await pool.query(theQuery, [userId, bookId]);
+    return +result.rows[0].count > 0;
+}
+
 export {
     queryStringToSQL,
+    userHasRatedBook,
     // Add other exports here as needed
 };

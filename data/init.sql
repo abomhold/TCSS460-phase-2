@@ -40,6 +40,13 @@ CREATE TABLE BOOKS (id SERIAL PRIMARY KEY,
         image_small_url TEXT
     );
 
+CREATE TABLE RATINGS (
+        Account_ID INT,
+        book_id INT,
+        FOREIGN KEY(book_id) REFERENCES BOOKS(id),
+        PRIMARY KEY (Account_ID, book_id)
+);
+
 COPY books
 FROM '/docker-entrypoint-initdb.d/books.csv'
 DELIMITER ','
