@@ -1,6 +1,5 @@
 // changePassword.ts
 import express, { Request, Response, Router, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 
 import {
     pool,
@@ -10,26 +9,6 @@ import {
 
 const isStringProvided = validationFunctions.isStringProvided;
 const generateHash = credentialingFunctions.generateHash;
-
-// Middleware for JWT verification
-const middleware = {
-    checkToken: (req: Request, res: Response, next: NextFunction) => {
-        const token = req.headers.authorization;
-        if (!token) {
-            return res.status(401).json({ message: 'Auth token is required' });
-        }
-
-        jwt.verify(token.split(' ')[1], process.env.JSON_WEB_TOKEN, (err, decoded) => {
-            if (err) {
-                return res.status(401).json({ message: 'Invalid auth token' });
-            }
-            
-            // @ts-ignore
-            req.decoded = decoded;
-            next();
-        });
-    }
-};
 
 const changePasswordRouter: Router = express.Router();
 
@@ -53,7 +32,7 @@ const changePasswordRouter: Router = express.Router();
  */
 changePasswordRouter.put(
     '/password',
-    middleware.checkToken,
+    // The checkToken middleware will be added in closed/index.ts
     (request: Request, response: Response, next: NextFunction) => {
         // Verify all required fields are provided
         if (
@@ -78,7 +57,8 @@ changePasswordRouter.put(
         }
     },
     (request: Request, response: Response) => {
-        // @ts-ignore
+        // You need to adjust this to use your specific way of accessing the user ID from the JWT
+        // @ts-ignore - Depending on how your checkToken middleware adds the decoded user info
         const userId = request.decoded.id;
         
         // First, verify the current password
