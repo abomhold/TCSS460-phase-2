@@ -93,7 +93,7 @@ passwordRouter.put(
             next();
         } else {
             response.status(400).send({
-                sucess: false,
+                success: false,
                 message: 'Missing required information'
             });
         }
@@ -121,7 +121,7 @@ passwordRouter.put(
             if (result.rowCount === 0) {
                 response.status(404).send({ //no user found with this ID
                     success: false,
-                    message: 'User no found'
+                    message: 'User not found'
                 });
                 return;
             }
