@@ -110,12 +110,14 @@ passwordRouter.put(
     },
     (request: IJwtRequest, response: Response) => {
         const userId = request.claims.id; //Get user ID from JWT claims
+        //console.log('User ID from token:', userId);
         //First we get the current salt and salted hash for the users
         const getCredentialsQuery = `
             SELECT salted_hash, salt
             FROM Account_Credential
             WHERE account_id = $1
-        `;
+        `; 
+        
         const getCredentialsValues = [userId];
         pool.query(getCredentialsQuery, getCredentialsValues).then((result) => {
             if (result.rowCount === 0) {
