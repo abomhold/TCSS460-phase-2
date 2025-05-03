@@ -1,8 +1,13 @@
-import { Response } from "express";
-import { IJwtRequest } from "../../../core/models";
-import { pool } from "../../../core/utilities";
-import { getUserBookRating } from "../../../core/utilities/sqlUtils";
-
+import { Response } from 'express';
+import { IJwtRequest } from '../../../core/models';
+import { pool } from '../../../core/utilities';
+import { getUserBookRating } from '../../../core/utilities/sqlUtils';
+/**
+ * Removes a rating from a book given a user ID and book ID.
+ *
+ * @param req The request object containing user ID and book ID.
+ * @param res The response object to send the result.
+ */
 export const removeRating = async (req: IJwtRequest, res: Response) => {
     const userId = req.claims.id;
     const bookId = req.params.bookId;
@@ -10,9 +15,13 @@ export const removeRating = async (req: IJwtRequest, res: Response) => {
     const client = await pool.connect();
 
     try {
+        // Begin transaction
         await client.query('BEGIN');
 
-        const bookResult = await client.query('SELECT * FROM books WHERE id = $1 FOR UPDATE', [bookId]);
+        const bookResult = await client.query(
+            'SELECT * FROM books WHERE id = $1 FOR UPDATE',
+            [bookId]
+        );
         if (bookResult.rowCount === 0) {
             await client.query('ROLLBACK');
             return res.status(404).json({ message: 'Book not found.' });
@@ -23,30 +32,55 @@ export const removeRating = async (req: IJwtRequest, res: Response) => {
 
         if (!prevRating) {
             await client.query('ROLLBACK');
-            return res.status(404).json({ message: "User has not rated this book." });
+            return res
+                .status(404)
+                .json({ message: 'User has not rated this book.' });
         }
 
         // Decrement rating_X_star
-        await client.query(`UPDATE books SET rating_${prevRating}_star = rating_${prevRating}_star - 1 WHERE id = $1`, [bookId]);
+        await client.query(
+            `UPDATE books SET rating_${prevRating}_star = rating_${prevRating}_star - 1 WHERE id = $1`,
+            [bookId]
+        );
 
         // Update count and avg
         const newCount = book.rating_count - 1;
-        const newAverage = newCount === 0 ? 0 : ((book.rating_avg * book.rating_count) - prevRating) / newCount;
+        const newAverage =
+            newCount === 0
+                ? 0
+                : (book.rating_avg * book.rating_count - prevRating) / newCount;
 
-        await client.query(`UPDATE books SET rating_count = $1, rating_avg = $2 WHERE id = $3`, [newCount, newAverage, bookId]);
+        await client.query(
+            `UPDATE books SET rating_count = $1, rating_avg = $2 WHERE id = $3`,
+            [newCount, newAverage, bookId]
+        );
 
         // Delete rating row
-        await client.query(`DELETE FROM ratings WHERE account_id = $1 AND book_id = $2`, [userId, bookId]);
+        await client.query(
+            `DELETE FROM ratings WHERE account_id = $1 AND book_id = $2`,
+            [userId, bookId]
+        );
 
         await client.query('COMMIT');
-        return res.status(200).json({ message: "Rating removed.", new_avg: newAverage, new_count: newCount });
-
+        return res.status(200).json({
+            message: 'Rating removed.',
+            data: {
+                id: bookId,
+                isbn13: book.isbn13,
+                title: book.title,
+                authors: book.authors,
+                rating_avg: newAverage,
+                rating_count: book.rating_count,
+            },
+        });
     } catch (error) {
+        // Rollback transaction in case of error
         await client.query('ROLLBACK');
-        console.error("Remove transaction failed:", error);
-        return res.status(500).json({ message: "Internal server error - please contact support" });
+        console.error('Remove transaction failed:', error);
+        return res.status(500).json({
+            message: 'Internal server error - please contact support',
+        });
     } finally {
         client.release();
     }
 };
-

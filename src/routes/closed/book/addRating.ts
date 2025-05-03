@@ -1,11 +1,16 @@
-import { Response } from "express";
-import { IJwtRequest } from "../../../core/models";
-import { pool } from "../../../core/utilities";
-import { getUserBookRating } from "../../../core/utilities/sqlUtils";
-import { validationFunctions } from "../../../core/utilities";
+import { Response } from 'express';
+import { IJwtRequest } from '../../../core/models';
+import { pool } from '../../../core/utilities';
+import { getUserBookRating } from '../../../core/utilities/sqlUtils';
+import { validationFunctions } from '../../../core/utilities';
 
 const { isNumberProvided } = validationFunctions;
-
+/**
+ * Add a rating to a book based on the authenticated user
+ *
+ * @param req The incoming request with JWT authentication
+ * @param res The response object to respond to the user
+ */
 export const addRating = async (req: IJwtRequest, res: Response) => {
     const userId = req.claims.id;
     const bookId = req.params.bookId;
@@ -13,22 +18,26 @@ export const addRating = async (req: IJwtRequest, res: Response) => {
 
     if (!rating || !isNumberProvided(rating)) {
         return res.status(400).json({
-            message: "Rating is not provided in body"
+            message: 'Rating is not provided in body',
         });
     }
 
     if (rating < 1 || rating > 5 || !Number.isInteger(rating)) {
         return res.status(400).json({
-            message: "Rating must be an integer between [1, 5]"
+            message: 'Rating must be an integer between [1, 5]',
         });
     }
 
     const client = await pool.connect();
 
     try {
+        // Begin transaction
         await client.query('BEGIN');
 
-        const bookResult = await client.query('SELECT * FROM books WHERE id = $1 FOR UPDATE', [bookId]);
+        const bookResult = await client.query(
+            'SELECT * FROM books WHERE id = $1 FOR UPDATE',
+            [bookId]
+        );
         if (bookResult.rowCount === 0) {
             await client.query('ROLLBACK');
             return res.status(404).json({ message: 'Book not found.' });
@@ -40,8 +49,8 @@ export const addRating = async (req: IJwtRequest, res: Response) => {
         if (prevRating) {
             await client.query('ROLLBACK');
             return res.status(400).json({
-                message: "This user has already rated this book",
-                previous: prevRating
+                message: 'This user has already rated this book',
+                previous: prevRating,
             });
         }
 
@@ -51,7 +60,8 @@ export const addRating = async (req: IJwtRequest, res: Response) => {
 
         // Update count and average
         const newCount = book.rating_count + 1;
-        const newAverage = ((book.rating_avg * book.rating_count) + rating) / newCount;
+        const newAverage =
+            (book.rating_avg * book.rating_count + rating) / newCount;
 
         const updateSummaryQuery = `
             UPDATE books 
@@ -61,7 +71,7 @@ export const addRating = async (req: IJwtRequest, res: Response) => {
         await client.query(updateSummaryQuery, [newCount, newAverage, bookId]);
 
         // Insert rating record
-        const insertRatingQuery = "INSERT INTO ratings VALUES ($1, $2, $3)";
+        const insertRatingQuery = 'INSERT INTO ratings VALUES ($1, $2, $3)';
         await client.query(insertRatingQuery, [userId, bookId, rating]);
 
         await client.query('COMMIT');
@@ -73,18 +83,18 @@ export const addRating = async (req: IJwtRequest, res: Response) => {
                 title: book.title,
                 authors: book.authors,
                 rating_avg: newAverage,
-                rating_count: newCount
-            }
+                rating_count: newCount,
+            },
         });
-
     } catch (error) {
+        // If any error occurs when modifying database, revert any changed made
         await client.query('ROLLBACK');
-        console.error("Transaction failed:", error);
+        console.error('Transaction failed:', error);
         return res.status(500).json({
-            message: "Internal server error - please contact support",
+            message: 'Internal server error - please contact support',
         });
     } finally {
+        // Finish transaction
         client.release();
     }
 };
-
