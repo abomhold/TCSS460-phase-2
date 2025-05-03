@@ -11,13 +11,6 @@ export const addRating = async (req: IJwtRequest, res: Response) => {
     const bookId = req.params.bookId;
     const rating = req.body.rating;
 
-    if (!userId || !bookId) {
-        return res.status(417).json({
-            message: 'Request is not as expected, this should never happen.',
-            data: {},
-        });
-    }
-
     if (!rating || !isNumberProvided(rating)) {
         return res.status(400).json({
             message: "Rating is not provided in body"

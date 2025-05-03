@@ -3,6 +3,8 @@ import { createBook } from './createBook';
 import { getByQuery } from './getByQuery';
 import { getByBookId } from './getByBookId';
 import { addRating } from './addRating';
+import { updateRating } from './updateRating';
+import { removeRating } from './removeRating';
 
 const bookRouter: Router = express.Router();
 
@@ -232,5 +234,7 @@ bookRouter.get('/', getByQuery);
  *     }
  */
 bookRouter.get('/:bookId', getByBookId);
-bookRouter.post('/:bookId/rating', addRating)
+bookRouter.post('/:bookId/rating', addRating);
+bookRouter.patch('/:bookId/rating', updateRating);
+bookRouter.delete('/:bookId/rating', removeRating);
 export { bookRouter };
