@@ -102,6 +102,8 @@ bookRouter.post('/', createBook);
  *
  * @apiQuery {String} [isbn13] ISBN-13 of the book to search for.
  * @apiQuery {String} [authors] Author name to search for (partial match allowed).
+ * @apiQuery {Number} [page] Page number for pagination.
+ * @apiQuery {Number} [limit] Maximum number of books to return per page.
  *
  * @apiSuccess {String} message Description of how many books were found.
  * @apiSuccess {Object[]} data Array of matching book objects.
