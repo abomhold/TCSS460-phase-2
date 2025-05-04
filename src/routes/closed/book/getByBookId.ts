@@ -6,14 +6,6 @@ const { isNumberProvided } = validationFunctions;
 
 export const getByBookId = (req: Request, res: Response) => {
     const bookId = req.params.bookId;
-
-    if (!isNumberProvided(bookId)) {
-        return res.status(400).json({
-            message: 'Invalid Book ID',
-            data: [],
-        });
-    }
-
     pool.query('SELECT * FROM books WHERE id = $1', [bookId])
         .then((result) => {
             if (result.rowCount === 0) {
