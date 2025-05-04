@@ -1,7 +1,7 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Response, NextFunction } from 'express';
 
-import { IJwtRequest } from '../models/JwtRequest.model';
+import { IJwtRequest } from '../models';
 
 const config = {
     secret: process.env.JSON_WEB_TOKEN,
