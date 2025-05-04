@@ -17,7 +17,10 @@ export const getByQuery = async (req: Request, res: Response) => {
         const queryParams = req.query;
 
         // Get paginated query
-        const [selectQuery, selectValues] = queryStringToSQL(queryParams, false);
+        const [selectQuery, selectValues] = queryStringToSQL(
+            queryParams,
+            false
+        );
 
         // Get count query
         const [countQuery, countValues] = queryStringToSQL(queryParams, true);
@@ -53,7 +56,6 @@ export const getByQuery = async (req: Request, res: Response) => {
                 limit,
             },
         });
-
     } catch (error) {
         console.error('Error executing query in /book:', error);
         return res.status(500).json({
@@ -62,4 +64,3 @@ export const getByQuery = async (req: Request, res: Response) => {
         });
     }
 };
-

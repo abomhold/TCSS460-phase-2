@@ -68,9 +68,11 @@ function isValidISBN(isbn: unknown): boolean {
     return false;
 }
 
-function isValidQuery(req: Request):boolean {
+function isValidQuery(req: Request): boolean {
     if (req.query.isbn13 && !isValidISBN(req.query.isbn13)) {
-        console.log('Invalid ISBN format. Please provide a valid 13-digit ISBN.');
+        console.log(
+            'Invalid ISBN format. Please provide a valid 13-digit ISBN.'
+        );
         return false;
     }
 
@@ -101,7 +103,7 @@ const validationFunctions = {
     isStringProvided,
     isNumberProvided,
     isValidISBN, //declared
-    isValidQuery
+    isValidQuery,
 };
 
 export { validationFunctions };

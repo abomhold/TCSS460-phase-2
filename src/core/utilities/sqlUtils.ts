@@ -13,7 +13,9 @@ const queryStringToSQL = (
     queryParams: qs.ParsedQs,
     countOnly: boolean = false
 ): [string, unknown[]] => {
-    let baseQuery = countOnly ? 'SELECT COUNT(*) FROM books' : 'SELECT * FROM books';
+    let baseQuery = countOnly
+        ? 'SELECT COUNT(*) FROM books'
+        : 'SELECT * FROM books';
 
     const queryValues: unknown[] = [];
     const queryConditions = Object.keys(queryParams)
