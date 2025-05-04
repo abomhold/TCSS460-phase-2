@@ -1,6 +1,6 @@
 import { pool } from './sql_conn';
 
-const allowedKeys = ['isbn13', 'authors']; // Define allowed query parameters
+const allowedQueryKeys = ['isbn13', 'authors'];
 
 /**
  * Converts query parameters from a request into a SQL query string and values.
@@ -12,25 +12,38 @@ const queryStringToSQL = (
     queryParams: qs.ParsedQs
 ): [string | null, unknown[]] => {
     // Build the query dynamically based on provided query parameters
-    const keys = Object.keys(queryParams);
+    // Start with basic select all
+    let baseQuery = 'SELECT * FROM books';
 
+    // Parse Query Values
     const queryValues = [];
-    const conditions = keys
-        .filter((key) => allowedKeys.includes(key))
+    const queryConditions = Object.keys(queryParams)
+        .filter((key) => allowedQueryKeys.includes(key))
         .map((key, index) => {
             queryValues.push(`%${queryParams[key]}%`);
             return `LOWER(CAST(${key} AS TEXT)) LIKE LOWER($${index + 1})`;
         })
         .join(' AND ');
 
-    let query = 'SELECT * FROM books';
-
-    if (conditions.length !== 0) {
-        query = query + ' WHERE ' + conditions;
+    // Add conditions to the base query
+    if (queryConditions.length !== 0) {
+        baseQuery += ' WHERE ' + queryConditions;
     }
 
-    return [query, queryValues];
+    // If query contain page information add pagination
+    if (queryParams['page'] || queryParams['limit']) {
+        const page = Number(queryParams['page']) || 0;
+        const limit = Number(queryParams['limit']) || 25;
+        const offset = (page - 1) * limit;
+
+        // Add pagination to the base query
+        baseQuery += `LIMIT $${queryValues.length + 1} OFFSET $${queryValues.length + 2}`;
+        queryValues.push(limit);
+        queryValues.push(offset);
+    }
+    return [baseQuery, queryValues];
 };
+
 /**
  * Get the rating a user has given a book
  *
