@@ -6,17 +6,16 @@ const allowedQueryKeys = ['isbn13', 'authors'];
  * Converts query parameters from a request into a SQL query string and values.
  *
  * @param queryParams The query parameters from the request
+ * @param countOnly A boolean indicating whether to generate a count-only query
  * @returns A tuple containing the SQL query string and an array of values to be used in the query
  */
 const queryStringToSQL = (
-    queryParams: qs.ParsedQs
-): [string | null, unknown[]] => {
-    // Build the query dynamically based on provided query parameters
-    // Start with basic select all
-    let baseQuery = 'SELECT * FROM books';
+    queryParams: qs.ParsedQs,
+    countOnly: boolean = false
+): [string, unknown[]] => {
+    let baseQuery = countOnly ? 'SELECT COUNT(*) FROM books' : 'SELECT * FROM books';
 
-    // Parse Query Values
-    const queryValues = [];
+    const queryValues: unknown[] = [];
     const queryConditions = Object.keys(queryParams)
         .filter((key) => allowedQueryKeys.includes(key))
         .map((key, index) => {
@@ -25,13 +24,11 @@ const queryStringToSQL = (
         })
         .join(' AND ');
 
-    // Add conditions to the base query
-    if (queryConditions.length !== 0) {
+    if (queryConditions.length > 0) {
         baseQuery += ' WHERE ' + queryConditions;
     }
 
-    // If query contain page information add pagination
-    if (queryParams['page'] || queryParams['limit']) {
+    if (!countOnly) {
         const page = Number(queryParams['page']) || 0;
         const limit = Number(queryParams['limit']) || 25;
         const offset = page * limit;
