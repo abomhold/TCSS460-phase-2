@@ -65,3 +65,26 @@ _4/20/2025 - 4/26/2025_
 We primarly communicated though Discord messages and voice chats. We had one in person meeting in DOU on 4/25/2025 where we discussed the specific implementation details of some of the routes.
 
 ### Comments
+
+N/A
+
+## Beta Sprint II
+
+_4/27/2025 - 5/3/2025_
+
+### Contributions
+
+- Austin Bomhold
+- Johan Hernandez
+    - Implemented Functionality for adding, updating, and removing ratings from books
+    - Added testing and documentation for the `/c/book/:bookId/rating` route
+- Sopheanith Ny
+- Yonas Omega
+
+### Meetings
+
+We communicated throughout the spring through Discord messages. We also had one long meeting on Friday May 2nd from 10am-1pm.
+
+### Comments
+
+N/A
