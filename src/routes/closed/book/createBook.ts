@@ -37,7 +37,6 @@ export const createBook = (
             message: 'Authors is required'
         });
     }
-
     // Check if book already exists
     const checkQuery = 'SELECT * FROM books WHERE isbn13 = $1';
     pool.query(checkQuery, [isbn13])
