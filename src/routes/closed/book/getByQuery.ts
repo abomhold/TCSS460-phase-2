@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import {
     pool,
-    validationFunctions,
     queryStringToSQL,
+    validationFunctions,
 } from '../../../core/utilities';
 
 const { isValidISBN } = validationFunctions;
@@ -49,10 +49,12 @@ export const getByQueryInPages = async (
     pageSize: number,
     offSet: number
 ) => {
-    const queryParams = req.query;
-    const [theQuery, values] = queryStringToSQL(queryParams);
-    const theQueryWithPagination = theQuery + 'LIMIT $1 OFFSET $2';
+    const [theQuery, values] = queryStringToSQL(req.query);
+    const theQueryWithPagination =
+        theQuery + `LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+
     const valuesWithPagination = [...values, pageSize, offSet];
+
     pool.query(theQueryWithPagination, valuesWithPagination)
         .then((result) => {
             if (result.rowCount === 0) {
