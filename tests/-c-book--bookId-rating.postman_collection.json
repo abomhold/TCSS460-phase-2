@@ -1,789 +1,701 @@
 {
-	"info": {
-		"_postman_id": "7a6004fc-bd98-4e57-828a-851a5361ec45",
-		"name": "/c/book/:bookId/rating",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "36229530"
-	},
-	"item": [
-		{
-			"name": "Register for JWT",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"const firstname = pm.variables.replaceIn('{{$randomFirstName}}')",
-							"const lastname = pm.variables.replaceIn('{{$randomLastName}}')",
-							"const email = pm.variables.replaceIn('{{$randomEmail}}')",
-							"const password = pm.variables.replaceIn('{{$randomPassword}}')",
-							"const username = `${firstname}-${lastname}`",
-							"const role = Math.floor(Math.random() * 5 + 1)",
-							"const phone = pm.variables.replaceIn('{{$randomPhoneNumber}}')",
-							"",
-							"const body = {",
-							"    firstname,",
-							"    lastname,",
-							"    email,",
-							"    password,",
-							"    username,",
-							"    role,",
-							"    phone",
-							"}",
-							"",
-							"pm.collectionVariables.set('user', JSON.stringify(body))"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 201\", function () {",
-							"    pm.response.to.have.status(201);",
-							"});",
-							"pm.test(\"Access token present\", function () {",
-							"    var jsonData = pm.response.json();",
-							"    const token = jsonData.accessToken;",
-							"    pm.expect(token).to.not.be.empty",
-							"    pm.collectionVariables.set('JWT', token)",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{{user}}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/register",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"register"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Create a book",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"let isbn13 = '100'",
-							"// Generate random ISBN13",
-							"for (i = 0; i < 10; i++) {",
-							"    const num = Math.floor(Math.random() * 10)",
-							"    isbn13 = isbn13 + String(num)",
-							"}",
-							"",
-							"const title = pm.variables.replaceIn('{{$randomWords}}')",
-							"const authors = pm.variables.replaceIn('{{$randomFullName}}')",
-							"",
-							"const book = {",
-							"    isbn13,",
-							"    title,",
-							"    authors",
-							"}",
-							"",
-							"pm.collectionVariables.set('book', JSON.stringify(book))"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 201\", function () {",
-							"    pm.response.to.have.status(201);",
-							"});",
-							"pm.test(\"Correct response book\", function () {",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.data).to.not.be.empty;",
-							"    pm.expect(jsonData.data.isbn13).to.eql(",
-							"        JSON.parse(",
-							"            pm.collectionVariables.get('book')",
-							"        ).isbn13",
-							"    );",
-							"    pm.collectionVariables.set('book', JSON.stringify(jsonData.data))",
-							"    pm.collectionVariables.set('id', jsonData.data.id);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{{book}}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/c/book",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"c",
-						"book"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Update UNRATED book rating",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"let rating = Math.floor(Math.random() * 5) + 1; // Random rating between 1 and 5",
-							"const oldRating = pm.collectionVariables.get(\"rating\")",
-							"while (rating === oldRating) {",
-							"    rating = Math.floor(Math.random() * 5) + 1; // Ensure the new rating is different from the old one",
-							"}",
-							"pm.collectionVariables.set(\"rating\", rating); // Update the collection variable with the new rating"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 404\", function () {",
-							"    pm.collectionVariables.unset(\"rating\")",
-							"    pm.response.to.have.status(404);",
-							"});",
-							"pm.test(\"Response body says not rated\", function () {",
-							"    pm.expect(pm.response.text().toLowerCase()).to.include(\"not rated\");",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "PATCH",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"rating\": {{rating}}\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/c/book/{{id}}/rating",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"c",
-						"book",
-						"{{id}}",
-						"rating"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Add BAD rating to book",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"// random number or string of number between -10 and 10",
-							"let rating = Math.random() * 20 - 10",
-							"if (Math.random() < 0.5) {",
-							"    rating = String(rating)",
-							"}",
-							"",
-							"pm.collectionVariables.set(\"badRating\", JSON.stringify({rating}));"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 400\", function () {",
-							"    pm.response.to.have.status(400);",
-							"    pm.collectionVariables.unset(\"badRating\");",
-							"});",
-							"pm.test(\"Body says must be an integer\", function () {",
-							"    pm.expect(pm.response.text().toLowerCase().toLowerCase()).to.include(\"integer\");",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{{badRating}}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/c/book/{{id}}/rating",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"c",
-						"book",
-						"{{id}}",
-						"rating"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Add EMPTY rating to book",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 400\", function () {",
-							"    pm.response.to.have.status(400);",
-							"});",
-							"pm.test(\"Response says rating is not provided\", function () {",
-							"    pm.expect(pm.response.text().toLowerCase()).to.include(\"not provided\");",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/c/book/{{id}}/rating",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"c",
-						"book",
-						"{{id}}",
-						"rating"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Add rating to book",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"const rating = Math.floor(Math.random() * 5 + 1)",
-							"",
-							"if (pm.collectionVariables.has(\"rating\")) {",
-							"    pm.collectionVariables.set(\"hadRating\", true)",
-							"} else {",
-							"    pm.collectionVariables.unset(\"hadRating\")",
-							"    pm.collectionVariables.set(\"rating\", rating)",
-							"}"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"if (pm.collectionVariables.has(\"hadRating\")) {",
-							"    pm.collectionVariables.unset(\"hadRating\")",
-							"    pm.test(\"Status code is 400 (User already had a rating)\", function () {",
-							"        pm.response.to.have.status(400);",
-							"    });",
-							"} else {",
-							"    pm.test(\"Status code is 201\", function () {",
-							"        pm.response.to.have.status(201);",
-							"    });",
-							"}"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"rating\": {{rating}}\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/c/book/{{id}}/rating",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"c",
-						"book",
-						"{{id}}",
-						"rating"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Add rating to book AGAIN",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"const rating = Math.floor(Math.random() * 5 + 1)",
-							"",
-							"if (pm.collectionVariables.has(\"rating\")) {",
-							"    pm.collectionVariables.set(\"hadRating\", true)",
-							"} else {",
-							"    pm.collectionVariables.unset(\"hadRating\")",
-							"    pm.collectionVariables.set(\"rating\", rating)",
-							"}"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"if (pm.collectionVariables.has(\"hadRating\")) {",
-							"    pm.collectionVariables.unset(\"hadRating\")",
-							"    pm.test(\"Status code is 400 (User already had a rating)\", function () {",
-							"        pm.response.to.have.status(400);",
-							"    });",
-							"} else {",
-							"    pm.test(\"Status code is 201\", function () {",
-							"        pm.response.to.have.status(201);",
-							"    });",
-							"}"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"rating\": {{rating}}\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/c/book/{{id}}/rating",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"c",
-						"book",
-						"{{id}}",
-						"rating"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Update book rating",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"let rating = Math.floor(Math.random() * 5) + 1; // Random rating between 1 and 5",
-							"const oldRating = pm.collectionVariables.get(\"rating\")",
-							"while (rating === oldRating) {",
-							"    rating = Math.floor(Math.random() * 5) + 1; // Ensure the new rating is different from the old one",
-							"}",
-							"pm.collectionVariables.set(\"rating\", rating); // Update the collection variable with the new rating"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"pm.test(\"Returned book data is same book\", function () {",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(+jsonData.data.id).to.eql(",
-							"        pm.collectionVariables.get(\"id\")",
-							"    );",
-							"    pm.expect(jsonData.data.isbn13).to.eql(",
-							"        JSON.parse(pm.collectionVariables.get(\"book\")).isbn13",
-							"    )",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "PATCH",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"rating\": {{rating}}\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/c/book/{{id}}/rating",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"c",
-						"book",
-						"{{id}}",
-						"rating"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Update book rating SAME",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 400\", function () {",
-							"    pm.response.to.have.status(400);",
-							"});",
-							"pm.test(\"Body says ratings are same\", function () {",
-							"    pm.expect(pm.response.text().toLowerCase()).to.include(\"same\");",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "PATCH",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"rating\": {{rating}}\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/c/book/{{id}}/rating",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"c",
-						"book",
-						"{{id}}",
-						"rating"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Update book rating INVALID",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"// random number or string of number between -10 and 10",
-							"let rating = Math.random() * 20 - 10",
-							"if (Math.random() < 0.5) {",
-							"    rating = String(rating)",
-							"}"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 400\", function () {",
-							"    pm.response.to.have.status(400);",
-							"});",
-							"pm.test(\"Body says must be an integer\", function () {",
-							"    pm.expect(pm.response.text().toLowerCase().toLowerCase()).to.include(\"integer\");",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "PATCH",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"rating\": {{rating}}\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/c/book/{{id}}/rating",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"c",
-						"book",
-						"{{id}}",
-						"rating"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Delete book rating",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"pm.collectionVariables.unset(\"rating\")"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/c/book/{{id}}/rating",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"c",
-						"book",
-						"{{id}}",
-						"rating"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Delete book rating AGAIN",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"pm.collectionVariables.unset(\"rating\")"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 404\", function () {",
-							"    pm.response.to.have.status(404);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/c/book/{{id}}/rating",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"c",
-						"book",
-						"{{id}}",
-						"rating"
-					]
-				}
-			},
-			"response": []
-		}
-	],
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "{{JWT}}",
-				"type": "string"
-			}
-		]
-	},
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"packages": {},
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"packages": {},
-				"exec": [
-					""
-				]
-			}
-		}
-	],
-	"variable": [
-		{
-			"key": "user",
-			"value": ""
-		},
-		{
-			"key": "JWT",
-			"value": ""
-		},
-		{
-			"key": "book",
-			"value": ""
-		},
-		{
-			"key": "id",
-			"value": ""
-		}
-	]
+    "info": {
+        "_postman_id": "7a6004fc-bd98-4e57-828a-851a5361ec45",
+        "name": "/c/book/:bookId/rating",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_exporter_id": "36229530"
+    },
+    "item": [
+        {
+            "name": "Register for JWT",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "const firstname = pm.variables.replaceIn('{{$randomFirstName}}')",
+                            "const lastname = pm.variables.replaceIn('{{$randomLastName}}')",
+                            "const email = pm.variables.replaceIn('{{$randomEmail}}')",
+                            "const password = pm.variables.replaceIn('{{$randomPassword}}')",
+                            "const username = `${firstname}-${lastname}`",
+                            "const role = Math.floor(Math.random() * 5 + 1)",
+                            "const phone = pm.variables.replaceIn('{{$randomPhoneNumber}}')",
+                            "",
+                            "const body = {",
+                            "    firstname,",
+                            "    lastname,",
+                            "    email,",
+                            "    password,",
+                            "    username,",
+                            "    role,",
+                            "    phone",
+                            "}",
+                            "",
+                            "pm.collectionVariables.set('user', JSON.stringify(body))"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "pm.test(\"Access token present\", function () {",
+                            "    var jsonData = pm.response.json();",
+                            "    const token = jsonData.accessToken;",
+                            "    pm.expect(token).to.not.be.empty",
+                            "    pm.collectionVariables.set('JWT', token)",
+                            "});"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{{user}}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/register",
+                    "host": ["{{base_url}}"],
+                    "path": ["register"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Create a book",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "let isbn13 = '100'",
+                            "// Generate random ISBN13",
+                            "for (i = 0; i < 10; i++) {",
+                            "    const num = Math.floor(Math.random() * 10)",
+                            "    isbn13 = isbn13 + String(num)",
+                            "}",
+                            "",
+                            "const title = pm.variables.replaceIn('{{$randomWords}}')",
+                            "const authors = pm.variables.replaceIn('{{$randomFullName}}')",
+                            "",
+                            "const book = {",
+                            "    isbn13,",
+                            "    title,",
+                            "    authors",
+                            "}",
+                            "",
+                            "pm.collectionVariables.set('book', JSON.stringify(book))"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "pm.test(\"Correct response book\", function () {",
+                            "    var jsonData = pm.response.json();",
+                            "    pm.expect(jsonData.data).to.not.be.empty;",
+                            "    pm.expect(jsonData.data.isbn13).to.eql(",
+                            "        JSON.parse(",
+                            "            pm.collectionVariables.get('book')",
+                            "        ).isbn13",
+                            "    );",
+                            "    pm.collectionVariables.set('book', JSON.stringify(jsonData.data))",
+                            "    pm.collectionVariables.set('id', jsonData.data.id);",
+                            "});"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{{book}}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/c/book",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update UNRATED book rating",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "let rating = Math.floor(Math.random() * 5) + 1; // Random rating between 1 and 5",
+                            "const oldRating = pm.collectionVariables.get(\"rating\")",
+                            "while (rating === oldRating) {",
+                            "    rating = Math.floor(Math.random() * 5) + 1; // Ensure the new rating is different from the old one",
+                            "}",
+                            "pm.collectionVariables.set(\"rating\", rating); // Update the collection variable with the new rating"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 404\", function () {",
+                            "    pm.collectionVariables.unset(\"rating\")",
+                            "    pm.response.to.have.status(404);",
+                            "});",
+                            "pm.test(\"Response body says not rated\", function () {",
+                            "    pm.expect(pm.response.text().toLowerCase()).to.include(\"not rated\");",
+                            "});"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"rating\": {{rating}}\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/c/book/{{id}}/rating",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "{{id}}", "rating"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Add BAD rating to book",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "// random number or string of number between -10 and 10",
+                            "let rating = Math.random() * 20 - 10",
+                            "if (Math.random() < 0.5) {",
+                            "    rating = String(rating)",
+                            "}",
+                            "",
+                            "pm.collectionVariables.set(\"badRating\", JSON.stringify({rating}));"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 400\", function () {",
+                            "    pm.response.to.have.status(400);",
+                            "    pm.collectionVariables.unset(\"badRating\");",
+                            "});",
+                            "pm.test(\"Body says must be an integer\", function () {",
+                            "    pm.expect(pm.response.text().toLowerCase().toLowerCase()).to.include(\"integer\");",
+                            "});"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{{badRating}}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/c/book/{{id}}/rating",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "{{id}}", "rating"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Add EMPTY rating to book",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [""],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 400\", function () {",
+                            "    pm.response.to.have.status(400);",
+                            "});",
+                            "pm.test(\"Response says rating is not provided\", function () {",
+                            "    pm.expect(pm.response.text().toLowerCase()).to.include(\"not provided\");",
+                            "});"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/c/book/{{id}}/rating",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "{{id}}", "rating"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Add rating to book",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "const rating = Math.floor(Math.random() * 5 + 1)",
+                            "",
+                            "if (pm.collectionVariables.has(\"rating\")) {",
+                            "    pm.collectionVariables.set(\"hadRating\", true)",
+                            "} else {",
+                            "    pm.collectionVariables.unset(\"hadRating\")",
+                            "    pm.collectionVariables.set(\"rating\", rating)",
+                            "}"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "if (pm.collectionVariables.has(\"hadRating\")) {",
+                            "    pm.collectionVariables.unset(\"hadRating\")",
+                            "    pm.test(\"Status code is 400 (User already had a rating)\", function () {",
+                            "        pm.response.to.have.status(400);",
+                            "    });",
+                            "} else {",
+                            "    pm.test(\"Status code is 201\", function () {",
+                            "        pm.response.to.have.status(201);",
+                            "    });",
+                            "}"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"rating\": {{rating}}\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/c/book/{{id}}/rating",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "{{id}}", "rating"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Add rating to book AGAIN",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "const rating = Math.floor(Math.random() * 5 + 1)",
+                            "",
+                            "if (pm.collectionVariables.has(\"rating\")) {",
+                            "    pm.collectionVariables.set(\"hadRating\", true)",
+                            "} else {",
+                            "    pm.collectionVariables.unset(\"hadRating\")",
+                            "    pm.collectionVariables.set(\"rating\", rating)",
+                            "}"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "if (pm.collectionVariables.has(\"hadRating\")) {",
+                            "    pm.collectionVariables.unset(\"hadRating\")",
+                            "    pm.test(\"Status code is 400 (User already had a rating)\", function () {",
+                            "        pm.response.to.have.status(400);",
+                            "    });",
+                            "} else {",
+                            "    pm.test(\"Status code is 201\", function () {",
+                            "        pm.response.to.have.status(201);",
+                            "    });",
+                            "}"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"rating\": {{rating}}\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/c/book/{{id}}/rating",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "{{id}}", "rating"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update book rating",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "let rating = Math.floor(Math.random() * 5) + 1; // Random rating between 1 and 5",
+                            "const oldRating = pm.collectionVariables.get(\"rating\")",
+                            "while (rating === oldRating) {",
+                            "    rating = Math.floor(Math.random() * 5) + 1; // Ensure the new rating is different from the old one",
+                            "}",
+                            "pm.collectionVariables.set(\"rating\", rating); // Update the collection variable with the new rating"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "pm.test(\"Returned book data is same book\", function () {",
+                            "    var jsonData = pm.response.json();",
+                            "    pm.expect(+jsonData.data.id).to.eql(",
+                            "        pm.collectionVariables.get(\"id\")",
+                            "    );",
+                            "    pm.expect(jsonData.data.isbn13).to.eql(",
+                            "        JSON.parse(pm.collectionVariables.get(\"book\")).isbn13",
+                            "    )",
+                            "});"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"rating\": {{rating}}\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/c/book/{{id}}/rating",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "{{id}}", "rating"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update book rating SAME",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [""],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 400\", function () {",
+                            "    pm.response.to.have.status(400);",
+                            "});",
+                            "pm.test(\"Body says ratings are same\", function () {",
+                            "    pm.expect(pm.response.text().toLowerCase()).to.include(\"same\");",
+                            "});"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"rating\": {{rating}}\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/c/book/{{id}}/rating",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "{{id}}", "rating"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update book rating INVALID",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "// random number or string of number between -10 and 10",
+                            "let rating = Math.random() * 20 - 10",
+                            "if (Math.random() < 0.5) {",
+                            "    rating = String(rating)",
+                            "}",
+                            "",
+                            "pm.collectionVariables.set(\"badRating\", JSON.stringify({rating}))"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 400\", function () {",
+                            "    pm.response.to.have.status(400);",
+                            "    pm.collectionVariables.unset(\"badRating\");",
+                            "});",
+                            "pm.test(\"Body says must be an integer\", function () {",
+                            "    pm.expect(pm.response.text().toLowerCase().toLowerCase()).to.include(\"integer\");",
+                            "});"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{{badRating}}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/c/book/{{id}}/rating",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "{{id}}", "rating"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete book rating",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": ["pm.collectionVariables.unset(\"rating\")"],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/c/book/{{id}}/rating",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "{{id}}", "rating"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete book rating AGAIN",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": ["pm.collectionVariables.unset(\"rating\")"],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 404\", function () {",
+                            "    pm.response.to.have.status(404);",
+                            "});"
+                        ],
+                        "type": "text/javascript",
+                        "packages": {}
+                    }
+                }
+            ],
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/c/book/{{id}}/rating",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "{{id}}", "rating"]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{JWT}}",
+                "type": "string"
+            }
+        ]
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [""]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [""]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "user",
+            "value": ""
+        },
+        {
+            "key": "JWT",
+            "value": ""
+        },
+        {
+            "key": "book",
+            "value": ""
+        },
+        {
+            "key": "id",
+            "value": ""
+        }
+    ]
 }
