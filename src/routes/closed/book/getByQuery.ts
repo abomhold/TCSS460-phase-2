@@ -42,3 +42,36 @@ export const getByQuery = async (req: Request, res: Response) => {
             });
     }
 };
+
+export const getByQueryInPages = async (
+    req: Request,
+    res: Response,
+    pageSize: number,
+    offSet: number
+) => {
+    const queryParams = req.query;
+    const [theQuery, values] = queryStringToSQL(queryParams);
+    const theQueryWithPagination = theQuery + 'LIMIT $1 OFFSET $2';
+    const valuesWithPagination = [...values, pageSize, offSet];
+    pool.query(theQueryWithPagination, valuesWithPagination)
+        .then((result) => {
+            if (result.rowCount === 0) {
+                res.status(404).json({
+                    message: 'No Books Found For Given Query',
+                    data: [],
+                });
+            } else {
+                res.status(200).json({
+                    message: `(${result.rowCount}) Book(s) found.`,
+                    data: result.rows,
+                });
+            }
+        })
+        .catch((error) => {
+            console.error('Error executing query in /book:', error);
+            res.status(500).json({
+                message: 'Internal Server Error',
+                data: [],
+            });
+        });
+};
