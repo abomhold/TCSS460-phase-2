@@ -34,10 +34,10 @@ const queryStringToSQL = (
     if (queryParams['page'] || queryParams['limit']) {
         const page = Number(queryParams['page']) || 0;
         const limit = Number(queryParams['limit']) || 25;
-        const offset = (page - 1) * limit;
+        const offset = page * limit;
 
         // Add pagination to the base query
-        baseQuery += `LIMIT $${queryValues.length + 1} OFFSET $${queryValues.length + 2}`;
+        baseQuery += ` LIMIT $${queryValues.length + 1} OFFSET $${queryValues.length + 2}`;
         queryValues.push(limit);
         queryValues.push(offset);
     }

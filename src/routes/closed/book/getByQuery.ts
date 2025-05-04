@@ -27,6 +27,7 @@ export const getByQuery = async (req: Request, res: Response) => {
             })
             .catch((error) => {
                 console.error('Error executing query in /book:', error);
+                console.error(theQuery);
                 res.status(500).json({
                     message: 'Internal Server Error',
                     data: [],
