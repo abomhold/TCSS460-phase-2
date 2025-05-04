@@ -9,32 +9,37 @@ import { pool } from '../../../core/utilities'; // Adjust import path as needed
  * @param res Express Response object
  * @returns HTTP response with status code and message
  */
-export const createBook = (
-    req: IJwtRequest,
-    res: Response
-) => {
+export const createBook = (req: IJwtRequest, res: Response) => {
     // Get book data from request body
-    const { isbn13, title, authors, publication_year, original_title, image_url, image_small_url } = req.body;
+    const {
+        isbn13,
+        title,
+        authors,
+        publication_year,
+        original_title,
+        image_url,
+        image_small_url,
+    } = req.body;
 
     // Validate required fields
     if (!validationFunctions.isValidISBN(isbn13)) {
         return res.status(400).json({
             success: false,
-            message: 'Invalid ISBN format'
+            message: 'Invalid ISBN format',
         });
     }
 
     if (!validationFunctions.isStringProvided(title)) {
         return res.status(400).json({
             success: false,
-            message: 'Title is required'
+            message: 'Title is required',
         });
     }
 
     if (!validationFunctions.isStringProvided(authors)) {
         return res.status(400).json({
             success: false,
-            message: 'Authors is required'
+            message: 'Authors is required',
         });
     }
     // Check if book already exists
@@ -43,7 +48,7 @@ export const createBook = (
         .then((result) => {
             if (result.rowCount > 0) {
                 res.status(409).json({
-                    message: 'Book with this ISBN already exists'
+                    message: 'Book with this ISBN already exists',
                 });
             } else {
                 const insertQuery = `
@@ -57,27 +62,27 @@ export const createBook = (
                     publication_year || null,
                     original_title || null,
                     image_url || null,
-                    image_small_url || null
+                    image_small_url || null,
                 ];
                 pool.query(insertQuery, values)
                     .then((result) => {
                         res.status(201).json({
                             message: 'Book created successfully',
-                            data: result.rows[0]
+                            data: result.rows[0],
                         });
                     })
                     .catch((error) => {
-                        console.log('Failed to create book:\n', error)
+                        console.log('Failed to create book:\n', error);
                         res.status(500).json({
-                            message: 'Internal server error'
+                            message: 'Internal server error',
                         });
-                    })
+                    });
             }
         })
         .catch((error) => {
             console.log('Failed to check if ISBN exists:', error);
             res.status(500).json({
-                message: 'Internal server error'
+                message: 'Internal server error',
             });
         });
 };

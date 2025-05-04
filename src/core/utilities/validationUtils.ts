@@ -57,7 +57,7 @@ function isValidISBN(isbn: unknown): boolean {
         return false;
     }
     // At this point, we know isbn is a string because isStringProvided checks that remove hyphens or spaces
-    const cleanedISBN = (isbn as string).replace(/[-\s]/g, "");
+    const cleanedISBN = (isbn as string).replace(/[-\s]/g, '');
 
     // Check if it's a valid ISBN-13 (13 digits)
     if (/^\d{13}$/.test(cleanedISBN)) {
