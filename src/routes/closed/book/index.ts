@@ -5,6 +5,7 @@ import { getByBookId } from './getByBookId';
 import { addRating } from './addRating';
 import { updateRating } from './updateRating';
 import { removeRating } from './removeRating';
+import { removeBookByIsbn, removeBookByAuthors } from './removeBook';
 
 const bookRouter: Router = express.Router();
 
@@ -461,5 +462,7 @@ bookRouter.patch('/:bookId/rating', updateRating);
  *     }
  */
 bookRouter.delete('/:bookId/rating', removeRating);
+
+bookRouter.delete('/', removeBookByIsbn, removeBookByAuthors);
 
 export { bookRouter };
