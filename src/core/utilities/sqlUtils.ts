@@ -1,7 +1,7 @@
 import { pool } from './sql_conn';
 import { QueryResult } from 'pg';
 
-const allowedQueryKeys = ['isbn13', 'authors'];
+const allowedQueryKeys = ['isbn13', 'authors', 'title', 'publication_year'];
 
 /**
  * Converts query parameters from a request into a SQL query string and values.
@@ -61,6 +61,7 @@ const getUserBookRating = async (
     const rating = result.rowCount > 0 ? result.rows[0].rating : 0;
     return rating;
 };
+
 /**
  * Parse a result set from getting books into a more usable format
  *

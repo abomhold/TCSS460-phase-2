@@ -1,108 +1,31 @@
 import express, { Router } from 'express';
 import { createBook } from './createBook';
-import { getByQuery } from './getByQuery';
+import { getByQuery } from './getByQuery'; // Assumed to be updated to handle new keys
 import { getByBookId } from './getByBookId';
 import { addRating } from './addRating';
 import { updateRating } from './updateRating';
 import { removeRating } from './removeRating';
-import { removeBookByIsbn, removeBookByAuthors } from './removeBook';
+import { removeBookByAuthors, removeBookByIsbn } from './removeBook';
 import { getByRating } from './getByRating';
 
 const bookRouter: Router = express.Router();
 
-/**
- * @api {post} /c/book Create a new book
- *
- * @apiDescription Creates a new book entry in the database. The ISBN-13 is validated to ensure it is in proper format.
- * Title and authors are required fields. Optional fields will be stored as NULL if not provided.
- * Duplicate books with the same ISBN are not allowed.
- *
- * @apiName CreateBook
- * @apiGroup Book
- *
- * @apiHeader {String} Authorization JWT token in the format "Bearer {token}"
- *
- * @apiBody {String} isbn13 ISBN-13 of the book (required)
- * @apiBody {String} title Title of the book (required)
- * @apiBody {String} authors Authors of the book (required, comma-separated string if multiple authors)
- * @apiBody {Number} [publication_year] Year the book was published (optional)
- * @apiBody {String} [original_title] Original title of the book if different (optional)
- * @apiBody {String} [image_url] URL to the main book image (optional)
- * @apiBody {String} [image_small_url] URL to the small book image (optional)
- *
- * @apiSuccess (201) {String} message Success message
- * @apiSuccess (201) {Object} data The created book object
- * @apiSuccess {Number} data.id Unique ID of the created book
- * @apiSuccess {String} data.isbn13 ISBN-13 of the book
- * @apiSuccess {String} data.title Title of the book
- * @apiSuccess {String} data.authors Authors of the book
- * @apiSuccess {Number} [data.publication_year] Year the book was published
- * @apiSuccess {String} [data.original_title] Original title
- * @apiSuccess {String} [data.image_url] Main image URL
- * @apiSuccess {String} [data.image_small_url] Small image URL
- *
- * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 201 Created
- *     {
- *       "message": "Book created successfully",
- *       "data": {
- *         "id": 1,
- *         "isbn13": "9781234567897",
- *         "title": "Sample Book Title",
- *         "authors": "John Doe",
- *         "publication_year": 2023,
- *         "original_title": "Sample Original Title",
- *         "image_url": "https://example.com/book.jpg",
- *         "image_small_url": "https://example.com/book-small.jpg"
- *       }
- *     }
- *
- * @apiError (Error 400) {String} message Invalid or missing fields
- * @apiErrorExample {json} Error Response (Invalid ISBN):
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "message": "Invalid ISBN format"
- *     }
- *
- * @apiErrorExample {json} Error Response (Missing Title):
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "message": "Title is required"
- *     }
- *
- * @apiErrorExample {json} Error Response (Missing Authors):
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "message": "Authors is required"
- *     }
- *
- * @apiError (Error 409) {String} message Book with this ISBN already exists
- * @apiErrorExample {json} Error Response (Duplicate ISBN):
- *     HTTP/1.1 409 Conflict
- *     {
- *       "message": "Book with this ISBN already exists"
- *     }
- *
- * @apiError (Error 500) {String} message Internal server error
- * @apiErrorExample {json} Error Response (Server Error):
- *     HTTP/1.1 500 Internal Server Error
- *     {
- *       "message": "Internal server error"
- *     }
- */
 bookRouter.post('/', createBook);
 
 /**
- * @api {get} /book Request to retrieve book(s) by ISBN13 and/or Author with pagination
+ * @api {get} /book Request to retrieve book(s) with filtering and pagination
  * @apiName GetBookByQuery
  * @apiGroup Book
  *
- * @apiDescription Retrieves book entries filtered by `isbn13` and/or `authors`, with optional pagination.
- * If multiple filters are provided, results must match all (logical AND). If no books match, returns 404.
- * Supports fuzzy matching (partial string match) and paginated results.
+ * @apiDescription Retrieves book entries filtered by `isbn13`, `authors`, `title`, and/or `publication_year`,
+ * with optional pagination. If multiple filters are provided, results must match all (logical AND).
+ * If no books match, returns 404. Supports fuzzy matching for string fields (partial string match)
+ * and exact matching for `publication_year`.
  *
  * @apiQuery {String} [isbn13] ISBN-13 of the book (partial match allowed).
- * @apiQuery {String} [authors] Author name (partial match allowed).
+ * @apiQuery {String} [authors] Author name(s) (partial match allowed).
+ * @apiQuery {String} [title] Title of the book (partial match allowed).
+ * @apiQuery {Number} [publication_year] Year the book was published (exact match).
  * @apiQuery {Number} [page=0] Page number to return (0-based index).
  * @apiQuery {Number} [limit=25] Number of results per page.
  *
@@ -129,66 +52,142 @@ bookRouter.post('/', createBook);
  * @apiSuccess {Number} pagination.page Current page number.
  * @apiSuccess {Number} pagination.limit Number of results per page.
  *
- * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "message": "(2) Book(s) found.",
- *       "data": [
- *         {
- *           "id": 1,
- *           "isbn13": "9781234567890",
- *           "authors": "Jane Doe",
- *           "publication_year": 2020,
- *           "original_title": "Original Title",
- *           "title": "Full Title",
- *           "rating_avg": 4.3,
- *           "rating_count": 10,
- *           "rating_1_star": 1,
- *           "rating_2_star": 0,
- *           "rating_3_star": 2,
- *           "rating_4_star": 3,
- *           "rating_5_star": 4,
- *           "image_url": "https://example.com/image.jpg",
- *           "image_small_url": "https://example.com/small.jpg"
- *         }
- *       ],
- *       "pagination": {
- *         "total_count": 52,
- *         "page": 1,
- *         "limit": 25
- *       }
- *     }
+ * @apiSuccessExample {json} Success Response (e.g., filtered by title and author):
+ * HTTP/1.1 200 OK
+ * {
+ * "message": "(1) Book(s) found.",
+ * "data": [
+ * {
+ * "id": 10,
+ * "isbn13": "9780743273565",
+ * "authors": "F. Scott Fitzgerald",
+ * "publication_year": 2004,
+ * "original_title": "The Great Gatsby",
+ * "title": "The Great Gatsby",
+ * "rating_avg": 3.93,
+ * "rating_count": 3000000,
+ * // ... other rating fields
+ * "image_url": "https://example.com/gatsby.jpg",
+ * "image_small_url": "https://example.com/gatsby-small.jpg"
+ * }
+ * ],
+ * "pagination": {
+ * "total_count": 1,
+ * "page": 0,
+ * "limit": 25
+ * }
+ * }
  *
- * @apiError (400 Bad Request) {String} message Invalid query parameters.
+ * @apiError (400 Bad Request) {String} message Invalid query parameters (e.g., using a non-allowed key or invalid format).
  * @apiErrorExample {json} Error Response (Invalid Parameters):
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "message": "Invalid query parameters",
- *       "data": []
- *     }
+ * HTTP/1.1 400 Bad Request
+ * {
+ * "message": "Invalid query parameters",
+ * "data": []
+ * }
  *
  * @apiError (404 Not Found) {String} message Book not found.
  * @apiErrorExample {json} Error Response (Not Found):
- *     HTTP/1.1 404 Not Found
- *     {
- *       "message": "Book not found.",
- *       "data": [],
- *       "pagination": {
- *         "total_count": 0,
- *         "page": 0,
- *         "limit": 25
- *       }
- *     }
+ * HTTP/1.1 404 Not Found
+ * {
+ * "message": "Book not found.",
+ * "data": [],
+ * "pagination": {
+ * "total_count": 0,
+ * "page": 0,
+ * "limit": 25
+ * }
+ * }
  *
  * @apiError (500 Internal Server Error) {String} message Internal server error.
  * @apiErrorExample {json} Error Response (Internal Error):
- *     HTTP/1.1 500 Internal Server Error
- *     {
- *       "message": "Internal Server Error",
- *       "data": []
- *     }
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ * "message": "Internal Server Error",
+ * "data": []
+ * }
  */
 bookRouter.get('/', getByQuery);
+
+/**
+ * @api {get} /c/book/rating Get Books by Minimum Average Rating
+ * @apiName GetBookByRating
+ * @apiGroup Book
+ *
+ * @apiDescription Retrieves book entries that have an average rating greater than or equal to the specified rating.
+ * If no rating is provided, it defaults to 0 (returning all books with any rating info).
+ *
+ * @apiQuery {Number{0-5}} [rating] Minimum average rating for the books (e.g., 3.5). If not provided, defaults to 0.
+ *
+ * @apiSuccess (200) {String} message Description of how many books were found.
+ * @apiSuccess (200) {Object[]} data Array of matching book objects.
+ * @apiSuccess {Number} data.id Unique ID of the book.
+ * @apiSuccess {String} data.isbn13 ISBN-13 identifier of the book.
+ * @apiSuccess {String} data.authors Author(s) of the book.
+ * @apiSuccess {Number} data.publication_year Year of publication.
+ * @apiSuccess {String} data.original_title Original title of the book.
+ * @apiSuccess {String} data.title Full title of the book.
+ * @apiSuccess {Number} data.rating_avg Average user rating.
+ * @apiSuccess {Number} data.rating_count Total number of ratings.
+ * @apiSuccess {Number} data.rating_1_star 1-star rating count.
+ * @apiSuccess {Number} data.rating_2_star 2-star rating count.
+ * @apiSuccess {Number} data.rating_3_star 3-star rating count.
+ * @apiSuccess {Number} data.rating_4_star 4-star rating count.
+ * @apiSuccess {Number} data.rating_5_star 5-star rating count.
+ * @apiSuccess {String} data.image_url URL to the book's image.
+ * @apiSuccess {String} data.image_small_url URL to the small book image.
+ *
+ * @apiSuccessExample {json} Success Response (Books with rating >= 4):
+ * HTTP/1.1 200 OK
+ * {
+ * "message": "(15) Book(s) found.",
+ * "data": [
+ * {
+ * "id": 1,
+ * "isbn13": "9780439023480",
+ * "authors": "Suzanne Collins",
+ * "publication_year": 2008,
+ * "original_title": "The Hunger Games",
+ * "title": "The Hunger Games (The Hunger Games, #1)",
+ * "rating_avg": 4.34,
+ * "rating_count": 4780653,
+ * "rating_1_star": 66715,
+ * "rating_2_star": 127936,
+ * "rating_3_star": 560092,
+ * "rating_4_star": 1481305,
+ * "rating_5_star": 2706317,
+ * "image_url": "https://images.gr-assets.com/books/1447303603m/2767052.jpg",
+ * "image_small_url": "https://images.gr-assets.com/books/1447303603s/2767052.jpg"
+ * }
+ * // ... other books
+ * ]
+ * }
+ *
+ * @apiError (Error 400) {String} message Invalid rating format.
+ * @apiErrorExample {json} Error Response (Invalid Rating Format):
+ * HTTP/1.1 400 Bad Request
+ * {
+ * "message": "invalid rating format. please provide a valid number 0 - 5.",
+ * "data": []
+ * }
+ *
+ * @apiError (Error 404) {String} message Book not found.
+ * @apiErrorExample {json} Error Response (No Books Found):
+ * HTTP/1.1 404 Not Found
+ * {
+ * "message": "Book not found.",
+ * "data": []
+ * }
+ *
+ * @apiError (Error 500) {String} message Internal server error.
+ * @apiErrorExample {json} Error Response (Internal Error):
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ * "message": "Internal Server Error",
+ * "data": []
+ * }
+ */
+bookRouter.get('/rating', getByRating);
 
 /**
  * @api {get} /c/book/:bookId Get Book by Book ID
@@ -219,58 +218,54 @@ bookRouter.get('/', getByQuery);
  * @apiSuccess {String} data.image_small_url URL to the small book image.
  *
  * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "message": "(1) Book(s) found.",
- *       "data": [
- *         {
- *           "id": 1,
- *           "isbn13": "9780439023480",
- *           "authors": "Suzanne Collins",
- *           "publication_year": 2008,
- *           "original_title": "The Hunger Games",
- *           "title": "The Hunger Games (The Hunger Games, #1)",
- *           "rating_avg": 4.34,
- *           "rating_count": 4780653,
- *           "rating_1_star": 66715,
- *           "rating_2_star": 127936,
- *           "rating_3_star": 560092,
- *           "rating_4_star": 1481305,
- *           "rating_5_star": 2706317,
- *           "image_url": "https://images.gr-assets.com/books/1447303603m/2767052.jpg",
- *           "image_small_url": "https://images.gr-assets.com/books/1447303603s/2767052.jpg"
- *         }
- *       ]
- *     }
+ * HTTP/1.1 200 OK
+ * {
+ * "message": "(1) Book(s) found.",
+ * "data": [
+ * {
+ * "id": 1,
+ * "isbn13": "9780439023480",
+ * "authors": "Suzanne Collins",
+ * "publication_year": 2008,
+ * "original_title": "The Hunger Games",
+ * "title": "The Hunger Games (The Hunger Games, #1)",
+ * "rating_avg": 4.34,
+ * "rating_count": 4780653,
+ * "rating_1_star": 66715,
+ * "rating_2_star": 127936,
+ * "rating_3_star": 560092,
+ * "rating_4_star": 1481305,
+ * "rating_5_star": 2706317,
+ * "image_url": "https://images.gr-assets.com/books/1447303603m/2767052.jpg",
+ * "image_small_url": "https://images.gr-assets.com/books/1447303603s/2767052.jpg"
+ * }
+ * ]
+ * }
  *
  * @apiError (Error 400) {String} message Invalid Book ID
  * @apiErrorExample {json} Error Response (Invalid Book ID):
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "message": "Invalid Book ID"
- *     }
+ * HTTP/1.1 400 Bad Request
+ * {
+ * "message": "Invalid Book ID"
+ * }
  *
  * @apiError (Error 404) {String} message Book not found.
  * @apiErrorExample {json} Error Response (Book Not Found):
- *     HTTP/1.1 404 Not Found
- *     {
- *       "message": "Book not found.",
- *       "data": []
- *     }
+ * HTTP/1.1 404 Not Found
+ * {
+ * "message": "Book not found.",
+ * "data": []
+ * }
  *
  * @apiError (Error 500) {String} message Internal server error.
  * @apiErrorExample {json} Error Response (Internal Error):
- *     HTTP/1.1 500 Internal Server Error
- *     {
- *       "message": "Internal Server Error",
- *       "data": []
- *     }
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ * "message": "Internal Server Error",
+ * "data": []
+ * }
  */
 bookRouter.get('/:bookId', getByBookId);
-
-
-
-bookRouter.get('/:rating', getByRating)
 
 /**
  * @api {post} /book/:bookId/rating Add a new rating to a book
@@ -292,54 +287,54 @@ bookRouter.get('/:rating', getByRating)
  * @apiSuccess (201 Created) {Number} data.rating_count Total number of ratings.
  *
  * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 201 Created
- *     {
- *       "message": "Updated ratings for book (123)",
- *       "data": {
- *         "id": "123",
- *         "isbn13": "9781234567890",
- *         "title": "Example Book",
- *         "authors": "Jane Doe",
- *         "rating_avg": 4.6,
- *         "rating_count": 15
- *       }
- *     }
+ * HTTP/1.1 201 Created
+ * {
+ * "message": "Updated ratings for book (123)",
+ * "data": {
+ * "id": "123",
+ * "isbn13": "9781234567890",
+ * "title": "Example Book",
+ * "authors": "Jane Doe",
+ * "rating_avg": 4.6,
+ * "rating_count": 15
+ * }
+ * }
  *
  * @apiError (400 Bad Request) RatingNotProvided A rating value was not provided in the request body
  * @apiErrorExample {json} Rating Not Provided:
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "message": "Rating is not provided in body"
- *     }
+ * HTTP/1.1 400 Bad Request
+ * {
+ * "message": "Rating is not provided in body"
+ * }
  *
  * @apiError (400 Bad Request) RatingInvalid The rating value is not in the correct range or correct type
  * @apiErrorExample {json} Invalid Rating:
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "message": "Rating must be an integer between [1, 5]"
- *     }
+ * HTTP/1.1 400 Bad Request
+ * {
+ * "message": "Rating must be an integer between [1, 5]"
+ * }
  *
  * @apiError (400 Bad Request) AlreadyRated The user has already rated this book
  * @apiErrorExample {json} Already Rated:
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "message": "This user has already rated this book",
- *       "previous": 4
- *     }
+ * HTTP/1.1 400 Bad Request
+ * {
+ * "message": "This user has already rated this book",
+ * "previous": 4
+ * }
  *
  * @apiError (404 Not Found) BookNotFound The book with the given ID was not found
  * @apiErrorExample {json} Book Not Found:
- *     HTTP/1.1 404 Not Found
- *     {
- *       "message": "Book not found."
- *     }
+ * HTTP/1.1 404 Not Found
+ * {
+ * "message": "Book not found."
+ * }
  *
  * @apiError (500 Internal Server Error) ServerError An error occurred during the transaction
  * @apiErrorExample {json} Server Error:
- *     HTTP/1.1 500 Internal Server Error
- *     {
- *       "message": "Internal server error - please contact support"
- *     }
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ * "message": "Internal server error - please contact support"
+ * }
  */
 bookRouter.post('/:bookId/rating', addRating);
 
@@ -363,53 +358,53 @@ bookRouter.post('/:bookId/rating', addRating);
  * @apiSuccess (200 OK) {Number} data.rating_count Total rating count.
  *
  * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "message": "Rating updated.",
- *       "data": {
- *         "id": "123",
- *         "isbn13": "9781234567890",
- *         "title": "Example Book",
- *         "authors": "Jane Doe",
- *         "rating_avg": 4.40,
- *         "rating_count": 9
- *       }
- *     }
+ * HTTP/1.1 200 OK
+ * {
+ * "message": "Rating updated.",
+ * "data": {
+ * "id": "123",
+ * "isbn13": "9781234567890",
+ * "title": "Example Book",
+ * "authors": "Jane Doe",
+ * "rating_avg": 4.40,
+ * "rating_count": 9
+ * }
+ * }
  *
  * @apiError (400 Bad Request) InvalidRating The new rating value is not in the correct range or correct type
  * @apiErrorExample {json} Invalid Rating:
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "message": "New rating must be an integer between [1, 5]"
- *     }
+ * HTTP/1.1 400 Bad Request
+ * {
+ * "message": "New rating must be an integer between [1, 5]"
+ * }
  *
  * @apiError (400 Bad Request) SameRating The new rating is the same as the previous rating
  * @apiErrorExample {json} Rating Unchanged:
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "message": "New rating is the same as the previous rating."
- *     }
+ * HTTP/1.1 400 Bad Request
+ * {
+ * "message": "New rating is the same as the previous rating."
+ * }
  *
  * @apiError (404 Not Found) BookNotFound The book with the given ID was not found
  * @apiErrorExample {json} Book Not Found:
- *     HTTP/1.1 404 Not Found
- *     {
- *       "message": "Book not found."
- *     }
+ * HTTP/1.1 404 Not Found
+ * {
+ * "message": "Book not found."
+ * }
  *
  * @apiError (404 Not Found) NoPreviousRating The user has not rated this book yet
  * @apiErrorExample {json} No Previous Rating:
- *     HTTP/1.1 404 Not Found
- *     {
- *       "message": "User has not rated this book yet."
- *     }
+ * HTTP/1.1 404 Not Found
+ * {
+ * "message": "User has not rated this book yet."
+ * }
  *
  * @apiError (500 Internal Server Error) ServerError An error occurred during the transaction
  * @apiErrorExample {json} Server Error:
- *     HTTP/1.1 500 Internal Server Error
- *     {
- *       "message": "Internal server error - please contact support"
- *     }
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ * "message": "Internal server error - please contact support"
+ * }
  */
 bookRouter.patch('/:bookId/rating', updateRating);
 
@@ -432,42 +427,96 @@ bookRouter.patch('/:bookId/rating', updateRating);
  * @apiSuccess (200 OK) {Number} data.rating_count Rating count before deletion.
  *
  * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "message": "Rating removed.",
- *       "data": {
- *         "id": "123",
- *         "isbn13": "9781234567890",
- *         "title": "Example Book",
- *         "authors": "Jane Doe",
- *         "rating_avg": 3.75,
- *         "rating_count": 10
- *       }
- *     }
+ * HTTP/1.1 200 OK
+ * {
+ * "message": "Rating removed.",
+ * "data": {
+ * "id": "123",
+ * "isbn13": "9781234567890",
+ * "title": "Example Book",
+ * "authors": "Jane Doe",
+ * "rating_avg": 3.75,
+ * "rating_count": 10
+ * }
+ * }
  *
  * @apiError (404 Not Found) BookNotFound Book with the given ID was not found.
  * @apiErrorExample {json} Book Not Found:
- *     HTTP/1.1 404 Not Found
- *     {
- *       "message": "Book not found."
- *     }
+ * HTTP/1.1 404 Not Found
+ * {
+ * "message": "Book not found."
+ * }
  *
  * @apiError (404 Not Found) NoPreviousRating User has not rated this book.
  * @apiErrorExample {json} No Previous Rating:
- *     HTTP/1.1 404 Not Found
- *     {
- *       "message": "User has not rated this book."
- *     }
+ * HTTP/1.1 404 Not Found
+ * {
+ * "message": "User has not rated this book."
+ * }
  *
  * @apiError (500 Internal Server Error) ServerError Something went wrong during the transaction.
  * @apiErrorExample {json} Server Error:
- *     HTTP/1.1 500 Internal Server Error
- *     {
- *       "message": "Internal server error - please contact support"
- *     }
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ * "message": "Internal server error - please contact support"
+ * }
  */
 bookRouter.delete('/:bookId/rating', removeRating);
 
+/**
+ * @api {delete} /c/book Delete book(s) by ISBN or Authors
+ * @apiName DeleteBook
+ * @apiGroup Book
+ *
+ * @apiDescription Deletes book entries based on ISBN-13 or authors.
+ * Provide EITHER `isbn13` OR `authors` as a query parameter.
+ * If `isbn13` is provided, it attempts to delete a single book matching that ISBN.
+ * If `authors` is provided, it attempts to delete all books by that author (exact match).
+ * This operation requires appropriate authorization.
+ *
+ * @apiHeader {String} Authorization JWT token in the format "Bearer {token}"
+ *
+ * @apiQuery {String} [isbn13] ISBN-13 of the book to delete.
+ * @apiQuery {String} [authors] Full name of the author(s) whose books should be deleted.
+ *
+ * @apiSuccess (200) {String} message Success message indicating how many books were deleted.
+ * @apiSuccessExample {json} Success Response (ISBN deletion):
+ * HTTP/1.1 200 OK
+ * {
+ * "message": "Book with ISBN 9781234567890 deleted successfully."
+ * }
+ * @apiSuccessExample {json} Success Response (Authors deletion):
+ * HTTP/1.1 200 OK
+ * {
+ * "message": "Deleted 3 book(s) by author John Doe."
+ * }
+ *
+ * @apiError (400) {String} message Missing or invalid query parameters (e.g., neither isbn13 nor authors provided, or providing both).
+ * @apiErrorExample {json} Error Response (Missing Parameters):
+ * HTTP/1.1 400 Bad Request
+ * {
+ * "message": "Either isbn13 or authors query parameter is required for deletion."
+ * }
+ *
+ * @apiError (404) {String} message Book or author not found.
+ * @apiErrorExample {json} Error Response (ISBN Not Found):
+ * HTTP/1.1 404 Not Found
+ * {
+ * "message": "Book with ISBN 9781234567890 not found."
+ * }
+ * @apiErrorExample {json} Error Response (Author Not Found):
+ * HTTP/1.1 404 Not Found
+ * {
+ * "message": "No books found for author Jane Doe."
+ * }
+ *
+ * @apiError (500) {String} message Internal server error.
+ * @apiErrorExample {json} Error Response (Server Error):
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ * "message": "Internal server error during deletion."
+ * }
+ */
 bookRouter.delete('/', removeBookByIsbn, removeBookByAuthors);
 
 export { bookRouter };
