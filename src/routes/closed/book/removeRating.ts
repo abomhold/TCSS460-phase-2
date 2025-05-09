@@ -2,6 +2,8 @@ import { Response } from 'express';
 import { IJwtRequest } from '../../../core/models';
 import { pool } from '../../../core/utilities';
 import { getUserBookRating } from '../../../core/utilities/sqlUtils';
+import { IBook, IBookDB, formatBookResponse } from '../../../core/models/book.interface';
+
 /**
  * Removes a rating from a book given a user ID and book ID.
  *
@@ -27,7 +29,7 @@ export const removeRating = async (req: IJwtRequest, res: Response) => {
             return res.status(404).json({ message: 'Book not found.' });
         }
 
-        const book = bookResult.rows[0];
+        const book = bookResult.rows[0] as IBookDB;
         const prevRating = await getUserBookRating(userId, bookId);
 
         if (!prevRating) {
@@ -61,17 +63,18 @@ export const removeRating = async (req: IJwtRequest, res: Response) => {
             [userId, bookId]
         );
 
+        // Retrieve the updated book to format according to our interface
+        const updatedBookResult = await client.query(
+            'SELECT * FROM books WHERE id = $1',
+            [bookId]
+        );
+        const updatedBook = updatedBookResult.rows[0] as IBookDB;
+        const formattedBook: IBook = formatBookResponse(updatedBook);
+
         await client.query('COMMIT');
         return res.status(200).json({
             message: 'Rating removed.',
-            data: {
-                id: bookId,
-                isbn13: book.isbn13,
-                title: book.title,
-                authors: book.authors,
-                rating_avg: newAverage,
-                rating_count: book.rating_count,
-            },
+            data: formattedBook
         });
     } catch (error) {
         // Rollback transaction in case of error

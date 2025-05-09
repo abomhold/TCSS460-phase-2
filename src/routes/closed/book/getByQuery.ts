@@ -4,6 +4,7 @@ import {
     queryStringToSQL,
     validationFunctions,
 } from '../../../core/utilities';
+import { IBook, IBookDB, formatBookResponse } from '../../../core/models/book.interface';
 
 export const getByQuery = async (req: Request, res: Response) => {
     if (!validationFunctions.isValidQuery(req)) {
@@ -47,9 +48,14 @@ export const getByQuery = async (req: Request, res: Response) => {
             });
         }
 
+        // Map database results to IBook interface
+        const formattedBooks: IBook[] = selectResult.rows.map((dbBook: IBookDB) => 
+            formatBookResponse(dbBook)
+        );
+
         return res.status(200).json({
             message: `(${selectResult.rowCount}) Book(s) found.`,
-            data: selectResult.rows,
+            data: formattedBooks,
             pagination: {
                 total_count: totalCount,
                 page,

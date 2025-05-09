@@ -24,7 +24,7 @@ export const getByBookId = (req: Request, res: Response) => {
                 });
             } else {
                 const dbBook = result.rows[0] as IBookDB;
-                const formattedBook = formatBookResponse(dbBook);
+                const formattedBook: IBook = formatBookResponse(dbBook);
                 
                 res.status(200).json({
                     message: `(${result.rowCount}) Book(s) found.`,
