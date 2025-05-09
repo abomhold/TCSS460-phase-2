@@ -1,4 +1,5 @@
 import { pool } from './sql_conn';
+import { QueryResult } from 'pg';
 
 const allowedQueryKeys = ['isbn13', 'authors'];
 
@@ -60,9 +61,41 @@ const getUserBookRating = async (
     const rating = result.rowCount > 0 ? result.rows[0].rating : 0;
     return rating;
 };
+/**
+ * Parse a result set from getting books into a more usable format
+ *
+ * @param result The result set from the database when using SELECT * on books
+ * @returns An array of books with their ratings
+ */
+const parseBookResult = (result: QueryResult) => {
+    return result.rows.map((book) => {
+        return {
+            id: book.id,
+            isbn13: book.isbn13,
+            authors: book.authors,
+            publication: book.publication_year,
+            original_title: book.original_title,
+            title: book.title,
+            ratings: {
+                average: book.rating_avg,
+                count: book.rating_count,
+                rating_1: book.rating_1_star,
+                rating_2: book.rating_2_star,
+                rating_3: book.rating_3_star,
+                rating_4: book.rating_4_star,
+                rating_5: book.rating_5_star,
+            },
+            icons: {
+                large: book.image_url,
+                small: book.image_small_url,
+            },
+        };
+    });
+};
 
 export {
     queryStringToSQL,
     getUserBookRating,
+    parseBookResult,
     // Add other exports here as needed
 };

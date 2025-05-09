@@ -1,7 +1,10 @@
 import { Response } from 'express';
 import { IJwtRequest } from '../../../core/models';
 import { pool } from '../../../core/utilities';
-import { getUserBookRating } from '../../../core/utilities/sqlUtils';
+import {
+    getUserBookRating,
+    parseBookResult,
+} from '../../../core/utilities/sqlUtils';
 import { validationFunctions } from '../../../core/utilities';
 
 const { isNumberProvided } = validationFunctions;
@@ -75,16 +78,14 @@ export const addRating = async (req: IJwtRequest, res: Response) => {
         await client.query(insertRatingQuery, [userId, bookId, rating]);
 
         await client.query('COMMIT');
+
+        const newBook = parseBookResult(
+            await client.query('SELECT * FROM books WHERE id = $1', [bookId])
+        )[0];
+
         return res.status(201).json({
             message: `Updated ratings for book (${bookId})`,
-            data: {
-                id: bookId,
-                isbn13: book.isbn13,
-                title: book.title,
-                authors: book.authors,
-                rating_avg: newAverage,
-                rating_count: newCount,
-            },
+            data: newBook,
         });
     } catch (error) {
         // If any error occurs when modifying database, revert any changed made

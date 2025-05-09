@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { pool } from '../../../core/utilities';
 import { validationFunctions } from '../../../core/utilities';
+import { parseBookResult } from '../../../core/utilities/sqlUtils';
 
 const { isNumberProvided } = validationFunctions;
 
@@ -24,7 +25,7 @@ export const getByBookId = (req: Request, res: Response) => {
             } else {
                 res.status(200).json({
                     message: `(${result.rowCount}) Book(s) found.`,
-                    data: result.rows,
+                    data: parseBookResult(result)[0],
                 });
             }
         })

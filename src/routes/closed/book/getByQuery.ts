@@ -4,6 +4,7 @@ import {
     queryStringToSQL,
     validationFunctions,
 } from '../../../core/utilities';
+import { parseBookResult } from '../../../core/utilities/sqlUtils';
 
 export const getByQuery = async (req: Request, res: Response) => {
     if (!validationFunctions.isValidQuery(req)) {
@@ -49,7 +50,7 @@ export const getByQuery = async (req: Request, res: Response) => {
 
         return res.status(200).json({
             message: `(${selectResult.rowCount}) Book(s) found.`,
-            data: selectResult.rows,
+            data: parseBookResult(selectResult),
             pagination: {
                 total_count: totalCount,
                 page,
