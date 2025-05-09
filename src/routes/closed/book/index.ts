@@ -10,6 +10,86 @@ import { getByRating } from './getByRating';
 
 const bookRouter: Router = express.Router();
 
+/**
+ * @api {post} /c/book Create a new book
+ *
+ * @apiDescription Creates a new book entry in the database. The ISBN-13 is validated to ensure it is in proper format.
+ * Title and authors are required fields. Optional fields will be stored as NULL if not provided.
+ * Duplicate books with the same ISBN are not allowed.
+ *
+ * @apiName CreateBook
+ * @apiGroup Book
+ *
+ * @apiHeader {String} Authorization JWT token in the format "Bearer {token}"
+ *
+ * @apiBody {String} isbn13 ISBN-13 of the book (required)
+ * @apiBody {String} title Title of the book (required)
+ * @apiBody {String} authors Authors of the book (required, comma-separated string if multiple authors)
+ * @apiBody {Number} [publication_year] Year the book was published (optional)
+ * @apiBody {String} [original_title] Original title of the book if different (optional)
+ * @apiBody {String} [image_url] URL to the main book image (optional)
+ * @apiBody {String} [image_small_url] URL to the small book image (optional)
+ *
+ * @apiSuccess (201) {String} message Success message
+ * @apiSuccess (201) {Object} data The created book object
+ * @apiSuccess {Number} data.id Unique ID of the created book
+ * @apiSuccess {String} data.isbn13 ISBN-13 of the book
+ * @apiSuccess {String} data.title Title of the book
+ * @apiSuccess {String} data.authors Authors of the book
+ * @apiSuccess {Number} [data.publication_year] Year the book was published
+ * @apiSuccess {String} [data.original_title] Original title
+ * @apiSuccess {String} [data.image_url] Main image URL
+ * @apiSuccess {String} [data.image_small_url] Small image URL
+ *
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 201 Created
+ *     {
+ *       "message": "Book created successfully",
+ *       "data": {
+ *         "id": 1,
+ *         "isbn13": "9781234567897",
+ *         "title": "Sample Book Title",
+ *         "authors": "John Doe",
+ *         "publication_year": 2023,
+ *         "original_title": "Sample Original Title",
+ *         "image_url": "https://example.com/book.jpg",
+ *         "image_small_url": "https://example.com/book-small.jpg"
+ *       }
+ *     }
+ *
+ * @apiError (Error 400) {String} message Invalid or missing fields
+ * @apiErrorExample {json} Error Response (Invalid ISBN):
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "message": "Invalid ISBN format"
+ *     }
+ *
+ * @apiErrorExample {json} Error Response (Missing Title):
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "message": "Title is required"
+ *     }
+ *
+ * @apiErrorExample {json} Error Response (Missing Authors):
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "message": "Authors is required"
+ *     }
+ *
+ * @apiError (Error 409) {String} message Book with this ISBN already exists
+ * @apiErrorExample {json} Error Response (Duplicate ISBN):
+ *     HTTP/1.1 409 Conflict
+ *     {
+ *       "message": "Book with this ISBN already exists"
+ *     }
+ *
+ * @apiError (Error 500) {String} message Internal server error
+ * @apiErrorExample {json} Error Response (Server Error):
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "message": "Internal server error"
+ *     }
+ */
 bookRouter.post('/', createBook);
 
 /**
