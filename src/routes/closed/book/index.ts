@@ -30,28 +30,46 @@ const bookRouter: Router = express.Router();
  *
  * @apiSuccess (201) {String} message Success message
  * @apiSuccess (201) {Object} data The created book object
- * @apiSuccess {Number} data.id Unique ID of the created book
- * @apiSuccess {String} data.isbn13 ISBN-13 of the book
- * @apiSuccess {String} data.title Title of the book
+ * @apiSuccess {Number} data.isbn13 ISBN-13 of the book
  * @apiSuccess {String} data.authors Authors of the book
- * @apiSuccess {Number} [data.publication_year] Year the book was published
- * @apiSuccess {String} [data.original_title] Original title
- * @apiSuccess {String} [data.image_url] Main image URL
- * @apiSuccess {String} [data.image_small_url] Small image URL
+ * @apiSuccess {Number} data.publication Publication year of the book
+ * @apiSuccess {String} data.original_title Original title of the book
+ * @apiSuccess {String} data.title Title of the book
+ * @apiSuccess {Object} data.ratings Book ratings information
+ * @apiSuccess {Number} data.ratings.average Average rating (1-5)
+ * @apiSuccess {Number} data.ratings.count Total number of ratings
+ * @apiSuccess {Number} data.ratings.rating_1 Number of 1-star ratings
+ * @apiSuccess {Number} data.ratings.rating_2 Number of 2-star ratings
+ * @apiSuccess {Number} data.ratings.rating_3 Number of 3-star ratings
+ * @apiSuccess {Number} data.ratings.rating_4 Number of 4-star ratings
+ * @apiSuccess {Number} data.ratings.rating_5 Number of 5-star ratings
+ * @apiSuccess {Object} data.icons Book image URLs
+ * @apiSuccess {String} data.icons.large URL to full-size book image
+ * @apiSuccess {String} data.icons.small URL to small book image
  *
  * @apiSuccessExample {json} Success Response:
  *     HTTP/1.1 201 Created
  *     {
  *       "message": "Book created successfully",
  *       "data": {
- *         "id": 1,
- *         "isbn13": "9781234567897",
- *         "title": "Sample Book Title",
+ *         "isbn13": 9781234567897,
  *         "authors": "John Doe",
- *         "publication_year": 2023,
+ *         "publication": 2023,
  *         "original_title": "Sample Original Title",
- *         "image_url": "https://example.com/book.jpg",
- *         "image_small_url": "https://example.com/book-small.jpg"
+ *         "title": "Sample Book Title",
+ *         "ratings": {
+ *           "average": 0,
+ *           "count": 0,
+ *           "rating_1": 0,
+ *           "rating_2": 0,
+ *           "rating_3": 0,
+ *           "rating_4": 0,
+ *           "rating_5": 0
+ *         },
+ *         "icons": {
+ *           "large": "https://example.com/book.jpg",
+ *           "small": "https://example.com/book-small.jpg"
+ *         }
  *       }
  *     }
  *
@@ -106,21 +124,22 @@ bookRouter.post('/', createBook);
  *
  * @apiSuccess {String} message Description of how many books were found.
  * @apiSuccess {Object[]} data Array of matching book objects.
- * @apiSuccess {Number} data.id Unique ID for the book.
- * @apiSuccess {String} data.isbn13 ISBN-13 identifier of the book.
- * @apiSuccess {String} data.authors Author(s) of the book.
- * @apiSuccess {Number} data.publication_year Year of publication.
- * @apiSuccess {String} data.original_title Original title of the book.
- * @apiSuccess {String} data.title Full title of the book.
- * @apiSuccess {Number} data.rating_avg Average user rating.
- * @apiSuccess {Number} data.rating_count Total number of ratings.
- * @apiSuccess {Number} data.rating_1_star 1-star rating count.
- * @apiSuccess {Number} data.rating_2_star 2-star rating count.
- * @apiSuccess {Number} data.rating_3_star 3-star rating count.
- * @apiSuccess {Number} data.rating_4_star 4-star rating count.
- * @apiSuccess {Number} data.rating_5_star 5-star rating count.
- * @apiSuccess {String} data.image_url URL to the book's image.
- * @apiSuccess {String} data.image_small_url URL to the book's small image.
+ * @apiSuccess {Number} data.isbn13 ISBN-13 of the book
+ * @apiSuccess {String} data.authors Authors of the book
+ * @apiSuccess {Number} data.publication Publication year of the book
+ * @apiSuccess {String} data.original_title Original title of the book
+ * @apiSuccess {String} data.title Title of the book
+ * @apiSuccess {Object} data.ratings Book ratings information
+ * @apiSuccess {Number} data.ratings.average Average rating (1-5)
+ * @apiSuccess {Number} data.ratings.count Total number of ratings
+ * @apiSuccess {Number} data.ratings.rating_1 Number of 1-star ratings
+ * @apiSuccess {Number} data.ratings.rating_2 Number of 2-star ratings
+ * @apiSuccess {Number} data.ratings.rating_3 Number of 3-star ratings
+ * @apiSuccess {Number} data.ratings.rating_4 Number of 4-star ratings
+ * @apiSuccess {Number} data.ratings.rating_5 Number of 5-star ratings
+ * @apiSuccess {Object} data.icons Book image URLs
+ * @apiSuccess {String} data.icons.large URL to full-size book image
+ * @apiSuccess {String} data.icons.small URL to small book image
  *
  * @apiSuccess {Object} pagination Pagination metadata.
  * @apiSuccess {Number} pagination.total_count Total number of matching books (not just current page).
@@ -133,21 +152,24 @@ bookRouter.post('/', createBook);
  *       "message": "(2) Book(s) found.",
  *       "data": [
  *         {
- *           "id": 1,
- *           "isbn13": "9781234567890",
+ *           "isbn13": 9781234567890,
  *           "authors": "Jane Doe",
- *           "publication_year": 2020,
+ *           "publication": 2020,
  *           "original_title": "Original Title",
  *           "title": "Full Title",
- *           "rating_avg": 4.3,
- *           "rating_count": 10,
- *           "rating_1_star": 1,
- *           "rating_2_star": 0,
- *           "rating_3_star": 2,
- *           "rating_4_star": 3,
- *           "rating_5_star": 4,
- *           "image_url": "https://example.com/image.jpg",
- *           "image_small_url": "https://example.com/small.jpg"
+ *           "ratings": {
+ *             "average": 4.3,
+ *             "count": 10,
+ *             "rating_1": 1,
+ *             "rating_2": 0,
+ *             "rating_3": 2,
+ *             "rating_4": 3,
+ *             "rating_5": 4
+ *           },
+ *           "icons": {
+ *             "large": "https://example.com/image.jpg",
+ *             "small": "https://example.com/small.jpg"
+ *           }
  *         }
  *       ],
  *       "pagination": {
@@ -200,21 +222,22 @@ bookRouter.get('/', getByQuery);
  *
  * @apiSuccess (200) {String} message Description of how many books were found (should be 1).
  * @apiSuccess (200) {Object[]} data Array containing the matching book object.
- * @apiSuccess {Number} data.id Unique ID of the book.
- * @apiSuccess {String} data.isbn13 ISBN-13 identifier of the book.
- * @apiSuccess {String} data.authors Author(s) of the book.
- * @apiSuccess {Number} data.publication_year Year of publication.
- * @apiSuccess {String} data.original_title Original title of the book.
- * @apiSuccess {String} data.title Full title of the book.
- * @apiSuccess {Number} data.rating_avg Average user rating.
- * @apiSuccess {Number} data.rating_count Total number of ratings.
- * @apiSuccess {Number} data.rating_1_star 1-star rating count.
- * @apiSuccess {Number} data.rating_2_star 2-star rating count.
- * @apiSuccess {Number} data.rating_3_star 3-star rating count.
- * @apiSuccess {Number} data.rating_4_star 4-star rating count.
- * @apiSuccess {Number} data.rating_5_star 5-star rating count.
- * @apiSuccess {String} data.image_url URL to the book's image.
- * @apiSuccess {String} data.image_small_url URL to the small book image.
+ * @apiSuccess {Number} data.isbn13 ISBN-13 of the book
+ * @apiSuccess {String} data.authors Authors of the book
+ * @apiSuccess {Number} data.publication Publication year of the book
+ * @apiSuccess {String} data.original_title Original title of the book
+ * @apiSuccess {String} data.title Title of the book
+ * @apiSuccess {Object} data.ratings Book ratings information
+ * @apiSuccess {Number} data.ratings.average Average rating (1-5)
+ * @apiSuccess {Number} data.ratings.count Total number of ratings
+ * @apiSuccess {Number} data.ratings.rating_1 Number of 1-star ratings
+ * @apiSuccess {Number} data.ratings.rating_2 Number of 2-star ratings
+ * @apiSuccess {Number} data.ratings.rating_3 Number of 3-star ratings
+ * @apiSuccess {Number} data.ratings.rating_4 Number of 4-star ratings
+ * @apiSuccess {Number} data.ratings.rating_5 Number of 5-star ratings
+ * @apiSuccess {Object} data.icons Book image URLs
+ * @apiSuccess {String} data.icons.large URL to full-size book image
+ * @apiSuccess {String} data.icons.small URL to small book image
  *
  * @apiSuccessExample {json} Success Response:
  *     HTTP/1.1 200 OK
@@ -222,21 +245,24 @@ bookRouter.get('/', getByQuery);
  *       "message": "(1) Book(s) found.",
  *       "data": [
  *         {
- *           "id": 1,
- *           "isbn13": "9780439023480",
+ *           "isbn13": 9780439023480,
  *           "authors": "Suzanne Collins",
- *           "publication_year": 2008,
+ *           "publication": 2008,
  *           "original_title": "The Hunger Games",
  *           "title": "The Hunger Games (The Hunger Games, #1)",
- *           "rating_avg": 4.34,
- *           "rating_count": 4780653,
- *           "rating_1_star": 66715,
- *           "rating_2_star": 127936,
- *           "rating_3_star": 560092,
- *           "rating_4_star": 1481305,
- *           "rating_5_star": 2706317,
- *           "image_url": "https://images.gr-assets.com/books/1447303603m/2767052.jpg",
- *           "image_small_url": "https://images.gr-assets.com/books/1447303603s/2767052.jpg"
+ *           "ratings": {
+ *             "average": 4.34,
+ *             "count": 4780653,
+ *             "rating_1": 66715,
+ *             "rating_2": 127936,
+ *             "rating_3": 560092,
+ *             "rating_4": 1481305,
+ *             "rating_5": 2706317
+ *           },
+ *           "icons": {
+ *             "large": "https://images.gr-assets.com/books/1447303603m/2767052.jpg",
+ *             "small": "https://images.gr-assets.com/books/1447303603s/2767052.jpg"
+ *           }
  *         }
  *       ]
  *     }
@@ -277,25 +303,47 @@ bookRouter.get('/:bookId', getByBookId);
  * @apiBody {Number{1-5}} rating The rating to apply (must be an integer between 1 and 5).
  *
  * @apiSuccess (201 Created) {String} message Success message.
- * @apiSuccess (201 Created) {Object} data Summary of updated rating data.
- * @apiSuccess (201 Created) {String} data.id Book ID.
- * @apiSuccess (201 Created) {String} data.isbn13 Book ISBN-13.
- * @apiSuccess (201 Created) {String} data.title Book title.
- * @apiSuccess (201 Created) {String} data.authors Book authors.
- * @apiSuccess (201 Created) {Number} data.rating_avg New average rating.
- * @apiSuccess (201 Created) {Number} data.rating_count Total number of ratings.
+ * @apiSuccess (201 Created) {Object} data The updated book object.
+ * @apiSuccess {Number} data.isbn13 ISBN-13 of the book
+ * @apiSuccess {String} data.authors Authors of the book
+ * @apiSuccess {Number} data.publication Publication year of the book
+ * @apiSuccess {String} data.original_title Original title of the book
+ * @apiSuccess {String} data.title Title of the book
+ * @apiSuccess {Object} data.ratings Book ratings information
+ * @apiSuccess {Number} data.ratings.average Average rating (1-5)
+ * @apiSuccess {Number} data.ratings.count Total number of ratings
+ * @apiSuccess {Number} data.ratings.rating_1 Number of 1-star ratings
+ * @apiSuccess {Number} data.ratings.rating_2 Number of 2-star ratings
+ * @apiSuccess {Number} data.ratings.rating_3 Number of 3-star ratings
+ * @apiSuccess {Number} data.ratings.rating_4 Number of 4-star ratings
+ * @apiSuccess {Number} data.ratings.rating_5 Number of 5-star ratings
+ * @apiSuccess {Object} data.icons Book image URLs
+ * @apiSuccess {String} data.icons.large URL to full-size book image
+ * @apiSuccess {String} data.icons.small URL to small book image
  *
  * @apiSuccessExample {json} Success Response:
  *     HTTP/1.1 201 Created
  *     {
  *       "message": "Updated ratings for book (123)",
  *       "data": {
- *         "id": "123",
- *         "isbn13": "9781234567890",
- *         "title": "Example Book",
+ *         "isbn13": 9781234567890,
  *         "authors": "Jane Doe",
- *         "rating_avg": 4.6,
- *         "rating_count": 15
+ *         "publication": 2020,
+ *         "original_title": "Example Original Title",
+ *         "title": "Example Book",
+ *         "ratings": {
+ *           "average": 4.6,
+ *           "count": 15,
+ *           "rating_1": 0,
+ *           "rating_2": 1,
+ *           "rating_3": 3,
+ *           "rating_4": 1,
+ *           "rating_5": 10
+ *         },
+ *         "icons": {
+ *           "large": "https://example.com/book.jpg",
+ *           "small": "https://example.com/book-small.jpg"
+ *         }
  *       }
  *     }
  *
@@ -348,25 +396,47 @@ bookRouter.post('/:bookId/rating', addRating);
  * @apiBody {Number{1-5}} rating The new rating value (must be an integer between 1 and 5).
  *
  * @apiSuccess (200 OK) {String} message Success message.
- * @apiSuccess (200 OK) {Object} data Book summary after rating update.
- * @apiSuccess (200 OK) {String} data.id Book ID.
- * @apiSuccess (200 OK) {String} data.isbn13 Book ISBN-13.
- * @apiSuccess (200 OK) {String} data.title Book title.
- * @apiSuccess (200 OK) {String} data.authors Book authors.
- * @apiSuccess (200 OK) {Number} data.rating_avg Updated average rating.
- * @apiSuccess (200 OK) {Number} data.rating_count Total rating count.
+ * @apiSuccess (200 OK) {Object} data The updated book object.
+ * @apiSuccess {Number} data.isbn13 ISBN-13 of the book
+ * @apiSuccess {String} data.authors Authors of the book
+ * @apiSuccess {Number} data.publication Publication year of the book
+ * @apiSuccess {String} data.original_title Original title of the book
+ * @apiSuccess {String} data.title Title of the book
+ * @apiSuccess {Object} data.ratings Book ratings information
+ * @apiSuccess {Number} data.ratings.average Average rating (1-5)
+ * @apiSuccess {Number} data.ratings.count Total number of ratings
+ * @apiSuccess {Number} data.ratings.rating_1 Number of 1-star ratings
+ * @apiSuccess {Number} data.ratings.rating_2 Number of 2-star ratings
+ * @apiSuccess {Number} data.ratings.rating_3 Number of 3-star ratings
+ * @apiSuccess {Number} data.ratings.rating_4 Number of 4-star ratings
+ * @apiSuccess {Number} data.ratings.rating_5 Number of 5-star ratings
+ * @apiSuccess {Object} data.icons Book image URLs
+ * @apiSuccess {String} data.icons.large URL to full-size book image
+ * @apiSuccess {String} data.icons.small URL to small book image
  *
  * @apiSuccessExample {json} Success Response:
  *     HTTP/1.1 200 OK
  *     {
  *       "message": "Rating updated.",
  *       "data": {
- *         "id": "123",
- *         "isbn13": "9781234567890",
- *         "title": "Example Book",
+ *         "isbn13": 9781234567890,
  *         "authors": "Jane Doe",
- *         "rating_avg": 4.40,
- *         "rating_count": 9
+ *         "publication": 2020,
+ *         "original_title": "Example Original Title",
+ *         "title": "Example Book",
+ *         "ratings": {
+ *           "average": 4.40,
+ *           "count": 9,
+ *           "rating_1": 0,
+ *           "rating_2": 0,
+ *           "rating_3": 1,
+ *           "rating_4": 3,
+ *           "rating_5": 5
+ *         },
+ *         "icons": {
+ *           "large": "https://example.com/book.jpg",
+ *           "small": "https://example.com/book-small.jpg"
+ *         }
  *       }
  *     }
  *
@@ -417,25 +487,47 @@ bookRouter.patch('/:bookId/rating', updateRating);
  * @apiParam {String} bookId The ID of the book.
  *
  * @apiSuccess (200 OK) {String} message Success message.
- * @apiSuccess (200 OK) {Object} data Book summary after rating removal.
- * @apiSuccess (200 OK) {String} data.id Book ID.
- * @apiSuccess (200 OK) {String} data.isbn13 Book ISBN-13.
- * @apiSuccess (200 OK) {String} data.title Book title.
- * @apiSuccess (200 OK) {String} data.authors Book authors.
- * @apiSuccess (200 OK) {Number} data.rating_avg Updated average rating.
- * @apiSuccess (200 OK) {Number} data.rating_count Rating count before deletion.
+ * @apiSuccess (200 OK) {Object} data The updated book object.
+ * @apiSuccess {Number} data.isbn13 ISBN-13 of the book
+ * @apiSuccess {String} data.authors Authors of the book
+ * @apiSuccess {Number} data.publication Publication year of the book
+ * @apiSuccess {String} data.original_title Original title of the book
+ * @apiSuccess {String} data.title Title of the book
+ * @apiSuccess {Object} data.ratings Book ratings information
+ * @apiSuccess {Number} data.ratings.average Average rating (1-5)
+ * @apiSuccess {Number} data.ratings.count Total number of ratings
+ * @apiSuccess {Number} data.ratings.rating_1 Number of 1-star ratings
+ * @apiSuccess {Number} data.ratings.rating_2 Number of 2-star ratings
+ * @apiSuccess {Number} data.ratings.rating_3 Number of 3-star ratings
+ * @apiSuccess {Number} data.ratings.rating_4 Number of 4-star ratings
+ * @apiSuccess {Number} data.ratings.rating_5 Number of 5-star ratings
+ * @apiSuccess {Object} data.icons Book image URLs
+ * @apiSuccess {String} data.icons.large URL to full-size book image
+ * @apiSuccess {String} data.icons.small URL to small book image
  *
  * @apiSuccessExample {json} Success Response:
  *     HTTP/1.1 200 OK
  *     {
  *       "message": "Rating removed.",
  *       "data": {
- *         "id": "123",
- *         "isbn13": "9781234567890",
- *         "title": "Example Book",
+ *         "isbn13": 9781234567890,
  *         "authors": "Jane Doe",
- *         "rating_avg": 3.75,
- *         "rating_count": 10
+ *         "publication": 2020,
+ *         "original_title": "Example Original Title",
+ *         "title": "Example Book",
+ *         "ratings": {
+ *           "average": 3.75,
+ *           "count": 8,
+ *           "rating_1": 0,
+ *           "rating_2": 1,
+ *           "rating_3": 2,
+ *           "rating_4": 2,
+ *           "rating_5": 3
+ *         },
+ *         "icons": {
+ *           "large": "https://example.com/book.jpg",
+ *           "small": "https://example.com/book-small.jpg"
+ *         }
  *       }
  *     }
  *
