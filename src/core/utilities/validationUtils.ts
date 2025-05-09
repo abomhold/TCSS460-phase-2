@@ -68,6 +68,20 @@ function isValidISBN(isbn: unknown): boolean {
     return false;
 }
 
+export function isValidRating(rating: unknown): boolean{
+    if (!isNumberProvided(rating)) {
+        return false;
+    }
+
+    const ratingNumber = Number(rating);
+
+    if (isNaN(ratingNumber)) {
+        return false;
+    }
+
+    return ratingNumber >= 0 && ratingNumber <= 5;
+}
+
 function isValidQuery(req: Request): boolean {
     if (req.query.isbn13 && !isValidISBN(req.query.isbn13)) {
         console.log(
@@ -102,8 +116,9 @@ function isValidQuery(req: Request): boolean {
 const validationFunctions = {
     isStringProvided,
     isNumberProvided,
-    isValidISBN, //declared
+    isValidISBN,
     isValidQuery,
+    isValidRating
 };
 
 export { validationFunctions };

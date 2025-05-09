@@ -6,6 +6,7 @@ import { addRating } from './addRating';
 import { updateRating } from './updateRating';
 import { removeRating } from './removeRating';
 import { removeBookByIsbn, removeBookByAuthors } from './removeBook';
+import { getByRating } from './getByRating';
 
 const bookRouter: Router = express.Router();
 
@@ -266,6 +267,10 @@ bookRouter.get('/', getByQuery);
  *     }
  */
 bookRouter.get('/:bookId', getByBookId);
+
+
+
+bookRouter.get('/:rating', getByRating)
 
 /**
  * @api {post} /book/:bookId/rating Add a new rating to a book

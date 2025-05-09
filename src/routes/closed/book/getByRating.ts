@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { pool } from '../../../core/utilities';
 import { isValidRating } from '../../../core/utilities/validationUtils'
+import { parseBookResult } from '../../../core/utilities/sqlUtils';
 
 export const getByRating = async (req: Request, res: Response) => {
     if (req.query.rating && !isValidRating(req.query.rating)) {
@@ -22,7 +23,7 @@ export const getByRating = async (req: Request, res: Response) => {
                 } else {
                     res.status(200).json({
                         message: `(${result.rowCount}) Book(s) found.`,
-                        data: result.rows, //todo: return book objects
+                        data: parseBookResult(result)
                     });
                 }
             })
