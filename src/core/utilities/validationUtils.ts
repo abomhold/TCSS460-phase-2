@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 /**
  * Checks the parameter to see if it is a a String.
  *
@@ -66,10 +68,40 @@ function isValidISBN(isbn: unknown): boolean {
     return false;
 }
 
+function isValidQuery(req: Request):boolean {
+    if (req.query.isbn13 && !isValidISBN(req.query.isbn13)) {
+        console.log('Invalid ISBN format. Please provide a valid 13-digit ISBN.');
+        return false;
+    }
+
+    if (req.query.page && !isNumberProvided(req.query.page)) {
+        console.log('Invalid Page Number');
+        return false;
+    }
+
+    if (req.query.limit && !isNumberProvided(req.query.limit)) {
+        console.log('Invalid Limit');
+        return false;
+    }
+
+    if (req.query.id && !isNumberProvided(req.query.id)) {
+        console.log('Invalid ID');
+        return false;
+    }
+
+    if (req.query.authors && !isStringProvided(req.query.authors)) {
+        console.log('Invalid Authors');
+        return false;
+    }
+
+    return true;
+}
+
 const validationFunctions = {
     isStringProvided,
     isNumberProvided,
     isValidISBN, //declared
+    isValidQuery
 };
 
 export { validationFunctions };

@@ -1,22 +1,14 @@
 import { Request, Response } from 'express';
 import {
     pool,
-    validationFunctions,
     queryStringToSQL,
+    validationFunctions,
 } from '../../../core/utilities';
 
-const { isValidISBN } = validationFunctions;
-
 export const getByQuery = async (req: Request, res: Response) => {
-    if (req.query.isbn13 && !isValidISBN(req.query.isbn13)) {
-        res.status(400).json({
-            message:
-                'Invalid ISBN format. Please provide a valid 13-digit ISBN.',
-            data: [],
-        });
-    } else {
+    // For every query in the string make sure it is valid
+    if (validationFunctions.isValidQuery(req)) {
         const queryParams = req.query;
-
         const [theQuery, values] = queryStringToSQL(queryParams);
 
         pool.query(theQuery, values)
@@ -35,10 +27,16 @@ export const getByQuery = async (req: Request, res: Response) => {
             })
             .catch((error) => {
                 console.error('Error executing query in /book:', error);
+                console.error(theQuery);
                 res.status(500).json({
                     message: 'Internal Server Error',
                     data: [],
                 });
             });
+    } else {
+        res.status(400).json({
+            message: 'Invalid query parameters',
+            data: [],
+        });
     }
 };

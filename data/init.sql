@@ -29,13 +29,13 @@ CREATE TABLE BOOKS (id SERIAL PRIMARY KEY,
         publication_year INT,
         original_title TEXT,
         title TEXT,
-        rating_avg FLOAT,
-        rating_count INT,
-        rating_1_star INT,
-        rating_2_star INT,
-        rating_3_star INT,
-        rating_4_star INT,
-        rating_5_star INT,
+        rating_avg FLOAT DEFAULT 0,
+        rating_count INT DEFAULT 0,
+        rating_1_star INT DEFAULT 0,
+        rating_2_star INT DEFAULT 0,
+        rating_3_star INT DEFAULT 0,
+        rating_4_star INT DEFAULT 0,
+        rating_5_star INT DEFAULT 0,
         image_url TEXT,
         image_small_url TEXT
     );
@@ -43,8 +43,10 @@ CREATE TABLE BOOKS (id SERIAL PRIMARY KEY,
 CREATE TABLE RATINGS (
         Account_ID INT,
         book_id INT,
+        rating INT,
         FOREIGN KEY(book_id) REFERENCES BOOKS(id),
-        PRIMARY KEY (Account_ID, book_id)
+        PRIMARY KEY (Account_ID, book_id),
+        CONSTRAINT check_rating_range CHECK (rating BETWEEN 1 AND 5)
 );
 
 COPY books

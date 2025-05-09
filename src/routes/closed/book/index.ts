@@ -2,7 +2,9 @@ import express, { Router } from 'express';
 import { createBook } from './createBook';
 import { getByQuery } from './getByQuery';
 import { getByBookId } from './getByBookId';
-import { addStar } from './addStar';
+import { addRating } from './addRating';
+import { updateRating } from './updateRating';
+import { removeRating } from './removeRating';
 
 const bookRouter: Router = express.Router();
 
@@ -232,5 +234,201 @@ bookRouter.get('/', getByQuery);
  *     }
  */
 bookRouter.get('/:bookId', getByBookId);
-bookRouter.post('/:bookId/stars', addStar)
+
+/**
+ * @api {post} /book/:bookId/rating Add a new rating to a book
+ * @apiName AddRating
+ * @apiGroup Rating
+ *
+ * @apiHeader {String} Authorization Bearer token.
+ *
+ * @apiParam {String} bookId The ID of the book to rate.
+ * @apiBody {Number{1-5}} rating The rating to apply (must be an integer between 1 and 5).
+ *
+ * @apiSuccess (201 Created) {String} message Success message.
+ * @apiSuccess (201 Created) {Object} data Summary of updated rating data.
+ * @apiSuccess (201 Created) {String} data.id Book ID.
+ * @apiSuccess (201 Created) {String} data.isbn13 Book ISBN-13.
+ * @apiSuccess (201 Created) {String} data.title Book title.
+ * @apiSuccess (201 Created) {String} data.authors Book authors.
+ * @apiSuccess (201 Created) {Number} data.rating_avg New average rating.
+ * @apiSuccess (201 Created) {Number} data.rating_count Total number of ratings.
+ *
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 201 Created
+ *     {
+ *       "message": "Updated ratings for book (123)",
+ *       "data": {
+ *         "id": "123",
+ *         "isbn13": "9781234567890",
+ *         "title": "Example Book",
+ *         "authors": "Jane Doe",
+ *         "rating_avg": 4.6,
+ *         "rating_count": 15
+ *       }
+ *     }
+ *
+ * @apiError (400 Bad Request) RatingNotProvided A rating value was not provided in the request body
+ * @apiErrorExample {json} Rating Not Provided:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "message": "Rating is not provided in body"
+ *     }
+ *
+ * @apiError (400 Bad Request) RatingInvalid The rating value is not in the correct range or correct type
+ * @apiErrorExample {json} Invalid Rating:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "message": "Rating must be an integer between [1, 5]"
+ *     }
+ *
+ * @apiError (400 Bad Request) AlreadyRated The user has already rated this book
+ * @apiErrorExample {json} Already Rated:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "message": "This user has already rated this book",
+ *       "previous": 4
+ *     }
+ *
+ * @apiError (404 Not Found) BookNotFound The book with the given ID was not found
+ * @apiErrorExample {json} Book Not Found:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "message": "Book not found."
+ *     }
+ *
+ * @apiError (500 Internal Server Error) ServerError An error occurred during the transaction
+ * @apiErrorExample {json} Server Error:
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "message": "Internal server error - please contact support"
+ *     }
+ */
+bookRouter.post('/:bookId/rating', addRating);
+
+/**
+ * @api {patch} /book/:bookId/rating Update a user's existing rating for a book
+ * @apiName UpdateRating
+ * @apiGroup Rating
+ *
+ * @apiHeader {String} Authorization Bearer token.
+ *
+ * @apiParam {String} bookId The ID of the book.
+ * @apiBody {Number{1-5}} rating The new rating value (must be an integer between 1 and 5).
+ *
+ * @apiSuccess (200 OK) {String} message Success message.
+ * @apiSuccess (200 OK) {Object} data Book summary after rating update.
+ * @apiSuccess (200 OK) {String} data.id Book ID.
+ * @apiSuccess (200 OK) {String} data.isbn13 Book ISBN-13.
+ * @apiSuccess (200 OK) {String} data.title Book title.
+ * @apiSuccess (200 OK) {String} data.authors Book authors.
+ * @apiSuccess (200 OK) {Number} data.rating_avg Updated average rating.
+ * @apiSuccess (200 OK) {Number} data.rating_count Total rating count.
+ *
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "message": "Rating updated.",
+ *       "data": {
+ *         "id": "123",
+ *         "isbn13": "9781234567890",
+ *         "title": "Example Book",
+ *         "authors": "Jane Doe",
+ *         "rating_avg": 4.40,
+ *         "rating_count": 9
+ *       }
+ *     }
+ *
+ * @apiError (400 Bad Request) InvalidRating The new rating value is not in the correct range or correct type
+ * @apiErrorExample {json} Invalid Rating:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "message": "New rating must be an integer between [1, 5]"
+ *     }
+ *
+ * @apiError (400 Bad Request) SameRating The new rating is the same as the previous rating
+ * @apiErrorExample {json} Rating Unchanged:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "message": "New rating is the same as the previous rating."
+ *     }
+ *
+ * @apiError (404 Not Found) BookNotFound The book with the given ID was not found
+ * @apiErrorExample {json} Book Not Found:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "message": "Book not found."
+ *     }
+ *
+ * @apiError (404 Not Found) NoPreviousRating The user has not rated this book yet
+ * @apiErrorExample {json} No Previous Rating:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "message": "User has not rated this book yet."
+ *     }
+ *
+ * @apiError (500 Internal Server Error) ServerError An error occurred during the transaction
+ * @apiErrorExample {json} Server Error:
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "message": "Internal server error - please contact support"
+ *     }
+ */
+bookRouter.patch('/:bookId/rating', updateRating);
+
+/**
+ * @api {delete} /book/:bookId/rating Remove a user's rating for a book
+ * @apiName RemoveRating
+ * @apiGroup Rating
+ *
+ * @apiHeader {String} Authorization Bearer token.
+ *
+ * @apiParam {String} bookId The ID of the book.
+ *
+ * @apiSuccess (200 OK) {String} message Success message.
+ * @apiSuccess (200 OK) {Object} data Book summary after rating removal.
+ * @apiSuccess (200 OK) {String} data.id Book ID.
+ * @apiSuccess (200 OK) {String} data.isbn13 Book ISBN-13.
+ * @apiSuccess (200 OK) {String} data.title Book title.
+ * @apiSuccess (200 OK) {String} data.authors Book authors.
+ * @apiSuccess (200 OK) {Number} data.rating_avg Updated average rating.
+ * @apiSuccess (200 OK) {Number} data.rating_count Rating count before deletion.
+ *
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "message": "Rating removed.",
+ *       "data": {
+ *         "id": "123",
+ *         "isbn13": "9781234567890",
+ *         "title": "Example Book",
+ *         "authors": "Jane Doe",
+ *         "rating_avg": 3.75,
+ *         "rating_count": 10
+ *       }
+ *     }
+ *
+ * @apiError (404 Not Found) BookNotFound Book with the given ID was not found.
+ * @apiErrorExample {json} Book Not Found:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "message": "Book not found."
+ *     }
+ *
+ * @apiError (404 Not Found) NoPreviousRating User has not rated this book.
+ * @apiErrorExample {json} No Previous Rating:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "message": "User has not rated this book."
+ *     }
+ *
+ * @apiError (500 Internal Server Error) ServerError Something went wrong during the transaction.
+ * @apiErrorExample {json} Server Error:
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "message": "Internal server error - please contact support"
+ *     }
+ */
+bookRouter.delete('/:bookId/rating', removeRating);
+
 export { bookRouter };

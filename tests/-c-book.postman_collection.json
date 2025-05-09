@@ -1,9 +1,10 @@
 {
 	"info": {
-		"_postman_id": "b7b9fa62-b7b1-4c4c-991e-29c1e0d6868a",
+		"_postman_id": "90d2a1b8-f0e3-41c6-8ba1-fc4120e934d6",
 		"name": "/c/book",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "36229530"
+		"_exporter_id": "43600000",
+		"_collection_link": "https://austin-6375735.postman.co/workspace/messages~68ecc760-e0d8-4b04-ba34-b02bfe7da1bb/collection/43600000-90d2a1b8-f0e3-41c6-8ba1-fc4120e934d6?action=share&source=collection_link&creator=43600000"
 	},
 	"item": [
 		{
@@ -257,11 +258,41 @@
 			],
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
+					"type": "jwt",
+					"jwt": [
 						{
-							"key": "token",
-							"value": "{{JWT}}",
+							"key": "algorithm",
+							"value": "HS256",
+							"type": "string"
+						},
+						{
+							"key": "isSecretBase64Encoded",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "payload",
+							"value": "{}",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "headerPrefix",
+							"value": "Bearer",
+							"type": "string"
+						},
+						{
+							"key": "queryParamKey",
+							"value": "token",
+							"type": "string"
+						},
+						{
+							"key": "header",
+							"value": "{}",
 							"type": "string"
 						}
 					]
@@ -281,6 +312,79 @@
 						{
 							"key": "isbn13",
 							"value": "{{isbn}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "All books paginated",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const isbn = JSON.parse(",
+							"    pm.collectionVariables.get('book')",
+							").isbn13",
+							"",
+							"pm.collectionVariables.set('isbn', isbn)",
+							"pm.environment.set(\"random_page_number\", Math.floor(Math.random() * 99) + 1);",
+							"pm.environment.set(\"random_page_limit\", Math.floor(Math.random() * 90) + 1);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Previously created book exists\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.length).to.be.gte(1);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{JWT}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/c/book?page={{random_page_number}}&limit={{random_page_limit}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"c",
+						"book"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "{{random_page_number}}"
+						},
+						{
+							"key": "limit",
+							"value": "{{random_page_limit}}"
 						}
 					]
 				}
