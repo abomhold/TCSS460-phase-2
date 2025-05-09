@@ -97,10 +97,19 @@ function isValidQuery(req: Request):boolean {
     return true;
 }
 
+export function isValidRating(rating: unknown): boolean {
+    if (!isNumberProvided(rating)) {
+        return false;
+    }
+    const ratingNumber: number = (rating as number)
+    return 0 <= ratingNumber && ratingNumber <= 5;
+}
+
 const validationFunctions = {
     isStringProvided,
     isNumberProvided,
-    isValidISBN, //declared
+    isValidISBN,
+    isValidRating,
     isValidQuery
 };
 
