@@ -68,9 +68,11 @@ function isValidISBN(isbn: unknown): boolean {
     return false;
 }
 
-function isValidQuery(req: Request):boolean {
+function isValidQuery(req: Request): boolean {
     if (req.query.isbn13 && !isValidISBN(req.query.isbn13)) {
-        console.log('Invalid ISBN format. Please provide a valid 13-digit ISBN.');
+        console.log(
+            'Invalid ISBN format. Please provide a valid 13-digit ISBN.'
+        );
         return false;
     }
 
@@ -97,20 +99,11 @@ function isValidQuery(req: Request):boolean {
     return true;
 }
 
-export function isValidRating(rating: unknown): boolean {
-    if (!isNumberProvided(rating)) {
-        return false;
-    }
-    const ratingNumber: number = (rating as number)
-    return 0 <= ratingNumber && ratingNumber <= 5;
-}
-
 const validationFunctions = {
     isStringProvided,
     isNumberProvided,
-    isValidISBN,
-    isValidRating,
-    isValidQuery
+    isValidISBN, //declared
+    isValidQuery,
 };
 
 export { validationFunctions };

@@ -4,38 +4,63 @@ import {
     queryStringToSQL,
     validationFunctions,
 } from '../../../core/utilities';
+import { parseBookResult } from '../../../core/utilities/sqlUtils';
 
 export const getByQuery = async (req: Request, res: Response) => {
-    // For every query in the string make sure it is valid
-    if (validationFunctions.isValidQuery(req)) {
-        const queryParams = req.query;
-        const [theQuery, values] = queryStringToSQL(queryParams);
-
-        pool.query(theQuery, values)
-            .then((result) => {
-                if (result.rowCount === 0) {
-                    res.status(404).json({
-                        message: 'Book not found.',
-                        data: [],
-                    });
-                } else {
-                    res.status(200).json({
-                        message: `(${result.rowCount}) Book(s) found.`,
-                        data: result.rows,
-                    });
-                }
-            })
-            .catch((error) => {
-                console.error('Error executing query in /book:', error);
-                console.error(theQuery);
-                res.status(500).json({
-                    message: 'Internal Server Error',
-                    data: [],
-                });
-            });
-    } else {
-        res.status(400).json({
+    if (!validationFunctions.isValidQuery(req)) {
+        return res.status(400).json({
             message: 'Invalid query parameters',
+            data: [],
+        });
+    }
+
+    try {
+        const queryParams = req.query;
+
+        // Get paginated query
+        const [selectQuery, selectValues] = queryStringToSQL(
+            queryParams,
+            false
+        );
+
+        // Get count query
+        const [countQuery, countValues] = queryStringToSQL(queryParams, true);
+
+        // Run both queries in parallel
+        const [selectResult, countResult] = await Promise.all([
+            pool.query(selectQuery, selectValues),
+            pool.query(countQuery, countValues),
+        ]);
+
+        const page = Number(queryParams['page']) || 0;
+        const limit = Number(queryParams['limit']) || 25;
+        const totalCount = Number(countResult.rows[0].count);
+
+        if (selectResult.rowCount === 0) {
+            return res.status(404).json({
+                message: 'Book not found.',
+                data: [],
+                pagination: {
+                    total_count: totalCount,
+                    page,
+                    limit,
+                },
+            });
+        }
+
+        return res.status(200).json({
+            message: `(${selectResult.rowCount}) Book(s) found.`,
+            data: parseBookResult(selectResult),
+            pagination: {
+                total_count: totalCount,
+                page,
+                limit,
+            },
+        });
+    } catch (error) {
+        console.error('Error executing query in /book:', error);
+        return res.status(500).json({
+            message: 'Internal Server Error',
             data: [],
         });
     }

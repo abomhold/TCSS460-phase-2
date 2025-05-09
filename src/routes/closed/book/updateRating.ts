@@ -2,7 +2,10 @@ import { Response } from 'express';
 import { IJwtRequest } from '../../../core/models';
 import { pool } from '../../../core/utilities';
 import { validationFunctions } from '../../../core/utilities';
-import { getUserBookRating } from '../../../core/utilities/sqlUtils';
+import {
+    getUserBookRating,
+    parseBookResult,
+} from '../../../core/utilities/sqlUtils';
 
 const { isNumberProvided } = validationFunctions;
 
@@ -88,16 +91,14 @@ export const updateRating = async (req: IJwtRequest, res: Response) => {
         );
 
         await client.query('COMMIT');
+
+        const newBook = parseBookResult(
+            await client.query('SELECT * FROM books WHERE id = $1', [bookId])
+        )[0];
+
         return res.status(200).json({
             message: 'Rating updated.',
-            data: {
-                id: bookId,
-                isbn13: book.isbn13,
-                title: book.title,
-                authors: book.authors,
-                rating_avg: newAverage,
-                rating_count: book.rating_count,
-            },
+            data: newBook,
         });
     } catch (error) {
         await client.query('ROLLBACK');

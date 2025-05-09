@@ -1,4 +1,5 @@
 import { pool } from './sql_conn';
+import { QueryResult } from 'pg';
 
 const allowedQueryKeys = ['isbn13', 'authors'];
 
@@ -6,17 +7,18 @@ const allowedQueryKeys = ['isbn13', 'authors'];
  * Converts query parameters from a request into a SQL query string and values.
  *
  * @param queryParams The query parameters from the request
+ * @param countOnly A boolean indicating whether to generate a count-only query
  * @returns A tuple containing the SQL query string and an array of values to be used in the query
  */
 const queryStringToSQL = (
-    queryParams: qs.ParsedQs
-): [string | null, unknown[]] => {
-    // Build the query dynamically based on provided query parameters
-    // Start with basic select all
-    let baseQuery = 'SELECT * FROM books';
+    queryParams: qs.ParsedQs,
+    countOnly: boolean = false
+): [string, unknown[]] => {
+    let baseQuery = countOnly
+        ? 'SELECT COUNT(*) FROM books'
+        : 'SELECT * FROM books';
 
-    // Parse Query Values
-    const queryValues = [];
+    const queryValues: unknown[] = [];
     const queryConditions = Object.keys(queryParams)
         .filter((key) => allowedQueryKeys.includes(key))
         .map((key, index) => {
@@ -25,13 +27,11 @@ const queryStringToSQL = (
         })
         .join(' AND ');
 
-    // Add conditions to the base query
-    if (queryConditions.length !== 0) {
+    if (queryConditions.length > 0) {
         baseQuery += ' WHERE ' + queryConditions;
     }
 
-    // If query contain page information add pagination
-    if (queryParams['page'] || queryParams['limit']) {
+    if (!countOnly) {
         const page = Number(queryParams['page']) || 0;
         const limit = Number(queryParams['limit']) || 25;
         const offset = page * limit;
@@ -61,9 +61,41 @@ const getUserBookRating = async (
     const rating = result.rowCount > 0 ? result.rows[0].rating : 0;
     return rating;
 };
+/**
+ * Parse a result set from getting books into a more usable format
+ *
+ * @param result The result set from the database when using SELECT * on books
+ * @returns An array of books with their ratings
+ */
+const parseBookResult = (result: QueryResult) => {
+    return result.rows.map((book) => {
+        return {
+            id: book.id,
+            isbn13: book.isbn13,
+            authors: book.authors,
+            publication: book.publication_year,
+            original_title: book.original_title,
+            title: book.title,
+            ratings: {
+                average: book.rating_avg,
+                count: book.rating_count,
+                rating_1: book.rating_1_star,
+                rating_2: book.rating_2_star,
+                rating_3: book.rating_3_star,
+                rating_4: book.rating_4_star,
+                rating_5: book.rating_5_star,
+            },
+            icons: {
+                large: book.image_url,
+                small: book.image_small_url,
+            },
+        };
+    });
+};
 
 export {
     queryStringToSQL,
     getUserBookRating,
+    parseBookResult,
     // Add other exports here as needed
 };

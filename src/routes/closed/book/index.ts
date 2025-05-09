@@ -5,6 +5,7 @@ import { getByBookId } from './getByBookId';
 import { addRating } from './addRating';
 import { updateRating } from './updateRating';
 import { removeRating } from './removeRating';
+import { removeBookByIsbn, removeBookByAuthors } from './removeBook';
 
 const bookRouter: Router = express.Router();
 
@@ -91,17 +92,18 @@ const bookRouter: Router = express.Router();
 bookRouter.post('/', createBook);
 
 /**
- * @api {get} /book Request to retrieve book(s) by ISBN13 or Author
- *
- * @apiDescription Retrieves one or more book entries by searching with an ISBN13 or author name.
- * Query parameters are optional but at least one must be provided. If multiple parameters are passed, they are combined with logical AND.
- * ISBN13 is validated to ensure it is a proper 13-digit number.
- *
+ * @api {get} /book Request to retrieve book(s) by ISBN13 and/or Author with pagination
  * @apiName GetBookByQuery
  * @apiGroup Book
  *
- * @apiQuery {String} [isbn13] ISBN-13 of the book to search for.
- * @apiQuery {String} [authors] Author name to search for (partial match allowed).
+ * @apiDescription Retrieves book entries filtered by `isbn13` and/or `authors`, with optional pagination.
+ * If multiple filters are provided, results must match all (logical AND). If no books match, returns 404.
+ * Supports fuzzy matching (partial string match) and paginated results.
+ *
+ * @apiQuery {String} [isbn13] ISBN-13 of the book (partial match allowed).
+ * @apiQuery {String} [authors] Author name (partial match allowed).
+ * @apiQuery {Number} [page=0] Page number to return (0-based index).
+ * @apiQuery {Number} [limit=25] Number of results per page.
  *
  * @apiSuccess {String} message Description of how many books were found.
  * @apiSuccess {Object[]} data Array of matching book objects.
@@ -121,33 +123,63 @@ bookRouter.post('/', createBook);
  * @apiSuccess {String} data.image_url URL to the book's image.
  * @apiSuccess {String} data.image_small_url URL to the book's small image.
  *
+ * @apiSuccess {Object} pagination Pagination metadata.
+ * @apiSuccess {Number} pagination.total_count Total number of matching books (not just current page).
+ * @apiSuccess {Number} pagination.page Current page number.
+ * @apiSuccess {Number} pagination.limit Number of results per page.
+ *
  * @apiSuccessExample {json} Success Response:
  *     HTTP/1.1 200 OK
  *     {
  *       "message": "(2) Book(s) found.",
  *       "data": [
- *         { ...book data... },
- *         { ...book data... }
- *       ]
+ *         {
+ *           "id": 1,
+ *           "isbn13": "9781234567890",
+ *           "authors": "Jane Doe",
+ *           "publication_year": 2020,
+ *           "original_title": "Original Title",
+ *           "title": "Full Title",
+ *           "rating_avg": 4.3,
+ *           "rating_count": 10,
+ *           "rating_1_star": 1,
+ *           "rating_2_star": 0,
+ *           "rating_3_star": 2,
+ *           "rating_4_star": 3,
+ *           "rating_5_star": 4,
+ *           "image_url": "https://example.com/image.jpg",
+ *           "image_small_url": "https://example.com/small.jpg"
+ *         }
+ *       ],
+ *       "pagination": {
+ *         "total_count": 52,
+ *         "page": 1,
+ *         "limit": 25
+ *       }
  *     }
  *
- * @apiError (Error 400) {String} message Invalid ISBN format.
- * @apiErrorExample {json} Error Response (Invalid ISBN):
+ * @apiError (400 Bad Request) {String} message Invalid query parameters.
+ * @apiErrorExample {json} Error Response (Invalid Parameters):
  *     HTTP/1.1 400 Bad Request
  *     {
- *       "message": "Invalid ISBN format. Please provide a valid 13-digit ISBN.",
+ *       "message": "Invalid query parameters",
  *       "data": []
  *     }
  *
- * @apiError (Error 404) {String} message No books found.
+ * @apiError (404 Not Found) {String} message Book not found.
  * @apiErrorExample {json} Error Response (Not Found):
  *     HTTP/1.1 404 Not Found
  *     {
  *       "message": "Book not found.",
- *       "data": []
+ *       "data": [],
+ *       "pagination": {
+ *         "total_count": 0,
+ *         "page": 0,
+ *         "limit": 25
+ *       }
  *     }
  *
- * @apiError (Error 500) {String} message Internal server error.
+ * @apiError (500 Internal Server Error) {String} message Internal server error.
  * @apiErrorExample {json} Error Response (Internal Error):
  *     HTTP/1.1 500 Internal Server Error
  *     {
@@ -430,5 +462,7 @@ bookRouter.patch('/:bookId/rating', updateRating);
  *     }
  */
 bookRouter.delete('/:bookId/rating', removeRating);
+
+bookRouter.delete('/', removeBookByIsbn, removeBookByAuthors);
 
 export { bookRouter };

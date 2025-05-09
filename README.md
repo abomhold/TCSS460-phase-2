@@ -75,6 +75,7 @@ _4/27/2025 - 5/3/2025_
 ### Contributions
 
 - Austin Bomhold
+    - Implemented Pagination and related test/doc
 - Johan Hernandez
     - Implemented Functionality for adding, updating, and removing ratings from books
     - Added testing and documentation for the `/c/book/:bookId/rating` route
