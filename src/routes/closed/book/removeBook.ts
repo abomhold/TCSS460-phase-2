@@ -2,6 +2,7 @@
 import { pool } from '../../../core/utilities';
 import { Request, Response, NextFunction } from 'express';
 import { validationFunctions } from '../../../core/utilities';
+import { formatBookResponse } from '../../../core/models/book.interface';
 
 const { isValidISBN } = validationFunctions;
 
@@ -26,7 +27,7 @@ export const removeBookByIsbn = async (
         const deletedBooks = result.rows;
         return res.status(200).json({
             message: `(${result.rowCount}) book(s) deleted successfully`,
-            data: deletedBooks,
+            data: deletedBooks.map((book) => formatBookResponse(book)),
         });
     } catch (error) {
         console.error('Error deleting books at DELETE /c/book?isbn=...', error);
@@ -57,7 +58,7 @@ export const removeBookByAuthors = async (req: Request, res: Response) => {
         const deletedBooks = result.rows;
         return res.status(200).json({
             message: `(${result.rowCount}) book(s) deleted successfully`,
-            data: deletedBooks,
+            data: deletedBooks.map((book) => formatBookResponse(book)),
         });
     } catch (error) {
         console.error(

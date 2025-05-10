@@ -643,4 +643,103 @@ bookRouter.patch('/:bookId/rating', updateRating);
  */
 bookRouter.delete('/:bookId/rating', removeRating);
 
+/**
+ * @api {delete} /book Delete book(s) by ISBN13 or Author
+ * @apiName DeleteBooks
+ * @apiGroup Book
+ *
+ * @apiDescription Deletes one or more books by `isbn13` or `authors`.
+ * If both parameters are provided, `isbn13` takes precedence and only books with that exact ISBN will be deleted.
+ * If only `authors` is provided, a case-insensitive partial match is performed against the authors field.
+ * The response includes all deleted books formatted using the `IBook` interface.
+ *
+ * @apiQuery {String} [isbn13] 13-digit ISBN to delete the matching book(s).
+ * @apiQuery {String} [authors] Author name(s) (comma-separated) to delete books by matching authors.
+ *
+ * @apiSuccess {String} message Summary message indicating how many books were deleted.
+ * @apiSuccess {Object[]} data Array of deleted books in the IBook format.
+ * @apiSuccess {Number} data.id Book ID.
+ * @apiSuccess {Number} data.isbn13 ISBN-13.
+ * @apiSuccess {String} data.authors Authors.
+ * @apiSuccess {Number} data.publication Publication year.
+ * @apiSuccess {String} data.original_title Original title of the book.
+ * @apiSuccess {String} data.title Full title of the book.
+ * @apiSuccess {Object} data.ratings Rating details.
+ * @apiSuccess {Number} data.ratings.average Average rating.
+ * @apiSuccess {Number} data.ratings.count Total number of ratings.
+ * @apiSuccess {Number} data.ratings.rating_1 1-star ratings.
+ * @apiSuccess {Number} data.ratings.rating_2 2-star ratings.
+ * @apiSuccess {Number} data.ratings.rating_3 3-star ratings.
+ * @apiSuccess {Number} data.ratings.rating_4 4-star ratings.
+ * @apiSuccess {Number} data.ratings.rating_5 5-star ratings.
+ * @apiSuccess {Object} data.icons Book image URLs.
+ * @apiSuccess {String} data.icons.large URL to the large image.
+ * @apiSuccess {String} data.icons.small URL to the small image.
+ *
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "message": "(2) book(s) deleted successfully",
+ *       "data": [
+ *         {
+ *           "id": 101,
+ *           "isbn13": 9781234567890,
+ *           "authors": "Jane Doe",
+ *           "publication": 2020,
+ *           "original_title": "Old Title",
+ *           "title": "The Final Chapter",
+ *           "ratings": {
+ *             "average": 4.2,
+ *             "count": 33,
+ *             "rating_1": 1,
+ *             "rating_2": 2,
+ *             "rating_3": 3,
+ *             "rating_4": 10,
+ *             "rating_5": 17
+ *           },
+ *           "icons": {
+ *             "large": "https://cdn.example.com/book_large.jpg",
+ *             "small": "https://cdn.example.com/book_small.jpg"
+ *           }
+ *         }
+ *       ]
+ *     }
+ *
+ * @apiError (400 Bad Request) InvalidISBN Provided ISBN13 is not a valid 13-digit format.
+ * @apiErrorExample {json} Invalid ISBN:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "error": "Invalid ISBN format"
+ *     }
+ *
+ * @apiError (400 Bad Request) MissingParameters Neither ISBN13 nor authors were provided.
+ * @apiErrorExample {json} Missing Parameters:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "error": "Authors or ISBN are required"
+ *     }
+ *
+ * @apiError (400 Bad Request) ShortAuthorName Author names are too short to search.
+ * @apiErrorExample {json} Short Author Name:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "error": "Authors must be at least 3 characters long."
+ *     }
+ *
+ * @apiError (404 Not Found) BookNotFound No matching books found.
+ * @apiErrorExample {json} No Books Found:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "error": "Books not found"
+ *     }
+ *
+ * @apiError (500 Internal Server Error) ServerError Error occurred during deletion.
+ * @apiErrorExample {json} Server Error:
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "error": "Internal server error"
+ *     }
+ */
+bookRouter.delete('/', removeBookByIsbn, removeBookByAuthors);
+
 export { bookRouter };
