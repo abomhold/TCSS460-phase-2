@@ -1,8 +1,8 @@
 import { Response } from 'express';
 import { validationFunctions } from '../../../core/utilities/validationUtils';
 import { IJwtRequest } from '../../../core/models/JwtRequest.model';
-import { pool } from '../../../core/utilities'; // Adjust import path as needed
-import { parseBookResult } from '../../../core/utilities/sqlUtils';
+import { pool } from '../../../core/utilities';
+import { IBook, IBookDB, formatBookResponse } from '../../../core/models/book.interface';
 
 /**
  * Creates a new book in the database
@@ -67,9 +67,12 @@ export const createBook = (req: IJwtRequest, res: Response) => {
                 ];
                 pool.query(insertQuery, values)
                     .then((result) => {
+                        const dbBook = result.rows[0] as IBookDB;
+                        const formattedBook: IBook = formatBookResponse(dbBook);
+                        
                         res.status(201).json({
                             message: 'Book created successfully',
-                            data: parseBookResult(result)[0],
+                            data: formattedBook,
                         });
                     })
                     .catch((error) => {

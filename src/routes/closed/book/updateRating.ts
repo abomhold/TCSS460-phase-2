@@ -2,10 +2,8 @@ import { Response } from 'express';
 import { IJwtRequest } from '../../../core/models';
 import { pool } from '../../../core/utilities';
 import { validationFunctions } from '../../../core/utilities';
-import {
-    getUserBookRating,
-    parseBookResult,
-} from '../../../core/utilities/sqlUtils';
+import { getUserBookRating } from '../../../core/utilities/sqlUtils';
+import { IBook, IBookDB, formatBookResponse } from '../../../core/models/book.interface';
 
 const { isNumberProvided } = validationFunctions;
 
@@ -46,7 +44,7 @@ export const updateRating = async (req: IJwtRequest, res: Response) => {
             return res.status(404).json({ message: 'Book not found.' });
         }
 
-        const book = bookResult.rows[0];
+        const book = bookResult.rows[0] as IBookDB;
         const prevRating = await getUserBookRating(userId, bookId);
 
         if (!prevRating) {
@@ -90,6 +88,14 @@ export const updateRating = async (req: IJwtRequest, res: Response) => {
             [newRating, userId, bookId]
         );
 
+        // Retrieve the updated book to format according to our interface
+        const updatedBookResult = await client.query(
+            'SELECT * FROM books WHERE id = $1',
+            [bookId]
+        );
+        const updatedBook = updatedBookResult.rows[0] as IBookDB;
+        const formattedBook: IBook = formatBookResponse(updatedBook);
+
         await client.query('COMMIT');
 
         const newBook = parseBookResult(
@@ -98,7 +104,7 @@ export const updateRating = async (req: IJwtRequest, res: Response) => {
 
         return res.status(200).json({
             message: 'Rating updated.',
-            data: newBook,
+            data: formattedBook
         });
     } catch (error) {
         await client.query('ROLLBACK');
