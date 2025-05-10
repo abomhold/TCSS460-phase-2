@@ -2,7 +2,11 @@ import { Response } from 'express';
 import { IJwtRequest } from '../../../core/models';
 import { pool } from '../../../core/utilities';
 import { getUserBookRating } from '../../../core/utilities/sqlUtils';
-import { IBook, IBookDB, formatBookResponse } from '../../../core/models/book.interface';
+import {
+    IBook,
+    IBookDB,
+    formatBookResponse,
+} from '../../../core/models/book.interface';
 
 /**
  * Removes a rating from a book given a user ID and book ID.
@@ -63,6 +67,8 @@ export const removeRating = async (req: IJwtRequest, res: Response) => {
             [userId, bookId]
         );
 
+        await client.query('COMMIT');
+
         // Retrieve the updated book to format according to our interface
         const updatedBookResult = await client.query(
             'SELECT * FROM books WHERE id = $1',
@@ -71,15 +77,9 @@ export const removeRating = async (req: IJwtRequest, res: Response) => {
         const updatedBook = updatedBookResult.rows[0] as IBookDB;
         const formattedBook: IBook = formatBookResponse(updatedBook);
 
-        await client.query('COMMIT');
-
-        const newBook = parseBookResult(
-            await client.query('SELECT * FROM books WHERE id = $1', [bookId])
-        )[0];
-
         return res.status(200).json({
             message: 'Rating removed.',
-            data: formattedBook
+            data: formattedBook,
         });
     } catch (error) {
         // Rollback transaction in case of error

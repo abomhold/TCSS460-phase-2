@@ -1,16 +1,20 @@
 import { Request, Response } from 'express';
 import { pool } from '../../../core/utilities';
-import { isValidRating } from '../../../core/utilities/validationUtils'
-import { parseBookResult } from '../../../core/utilities/sqlUtils';
+import { isValidRating } from '../../../core/utilities/validationUtils';
+import {
+    formatBookResponse,
+    IBookDB,
+} from '../../../core/models/book.interface';
 
 export const getByRating = async (req: Request, res: Response) => {
     if (req.query.rating && !isValidRating(req.query.rating)) {
         res.status(400).json({
-            message: 'invalid rating format. please provide a valid number 0 - 5.',
+            message:
+                'invalid rating format. please provide a valid number 0 - 5.',
             data: [],
         });
     } else {
-        const minRating = Number(req.query.rating)
+        const minRating = Number(req.query.rating);
         const theQuery = 'SELECT * FROM books WHERE rating_avg >= $1';
 
         pool.query(theQuery, [minRating || 0])
@@ -23,7 +27,10 @@ export const getByRating = async (req: Request, res: Response) => {
                 } else {
                     res.status(200).json({
                         message: `(${result.rowCount}) Book(s) found.`,
-                        data: parseBookResult(result)
+                        data: result.rows.map((book) => {
+                            const dbBook = book as IBookDB;
+                            return formatBookResponse(dbBook);
+                        }),
                     });
                 }
             })

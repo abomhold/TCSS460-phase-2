@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
 import { pool } from '../../../core/utilities';
 import { validationFunctions } from '../../../core/utilities';
-import { parseBookResult } from '../../../core/utilities/sqlUtils';
-import { IBook, IBookDB, formatBookResponse } from '../../../core/models/book.interface';
+import {
+    IBook,
+    IBookDB,
+    formatBookResponse,
+} from '../../../core/models/book.interface';
 
 const { isNumberProvided } = validationFunctions;
 
@@ -26,7 +29,7 @@ export const getByBookId = (req: Request, res: Response) => {
             } else {
                 const dbBook = result.rows[0] as IBookDB;
                 const formattedBook: IBook = formatBookResponse(dbBook);
-                
+
                 res.status(200).json({
                     message: `(${result.rowCount}) Book(s) found.`,
                     data: [formattedBook],

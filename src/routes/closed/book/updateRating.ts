@@ -3,7 +3,11 @@ import { IJwtRequest } from '../../../core/models';
 import { pool } from '../../../core/utilities';
 import { validationFunctions } from '../../../core/utilities';
 import { getUserBookRating } from '../../../core/utilities/sqlUtils';
-import { IBook, IBookDB, formatBookResponse } from '../../../core/models/book.interface';
+import {
+    IBook,
+    IBookDB,
+    formatBookResponse,
+} from '../../../core/models/book.interface';
 
 const { isNumberProvided } = validationFunctions;
 
@@ -88,6 +92,8 @@ export const updateRating = async (req: IJwtRequest, res: Response) => {
             [newRating, userId, bookId]
         );
 
+        await client.query('COMMIT');
+
         // Retrieve the updated book to format according to our interface
         const updatedBookResult = await client.query(
             'SELECT * FROM books WHERE id = $1',
@@ -96,15 +102,9 @@ export const updateRating = async (req: IJwtRequest, res: Response) => {
         const updatedBook = updatedBookResult.rows[0] as IBookDB;
         const formattedBook: IBook = formatBookResponse(updatedBook);
 
-        await client.query('COMMIT');
-
-        const newBook = parseBookResult(
-            await client.query('SELECT * FROM books WHERE id = $1', [bookId])
-        )[0];
-
         return res.status(200).json({
             message: 'Rating updated.',
-            data: formattedBook
+            data: formattedBook,
         });
     } catch (error) {
         await client.query('ROLLBACK');

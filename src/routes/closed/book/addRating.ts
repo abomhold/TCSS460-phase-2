@@ -1,12 +1,13 @@
 import { Response } from 'express';
 import { IJwtRequest } from '../../../core/models';
 import { pool } from '../../../core/utilities';
-import {
-    getUserBookRating,
-    parseBookResult,
-} from '../../../core/utilities/sqlUtils';
+import { getUserBookRating } from '../../../core/utilities/sqlUtils';
 import { validationFunctions } from '../../../core/utilities';
-import { IBook, IBookDB, formatBookResponse } from '../../../core/models/book.interface';
+import {
+    IBook,
+    IBookDB,
+    formatBookResponse,
+} from '../../../core/models/book.interface';
 
 const { isNumberProvided } = validationFunctions;
 /**
@@ -78,6 +79,8 @@ export const addRating = async (req: IJwtRequest, res: Response) => {
         const insertRatingQuery = 'INSERT INTO ratings VALUES ($1, $2, $3)';
         await client.query(insertRatingQuery, [userId, bookId, rating]);
 
+        await client.query('COMMIT');
+
         // Retrieve the updated book to format according to our interface
         const updatedBookResult = await client.query(
             'SELECT * FROM books WHERE id = $1',
@@ -86,15 +89,9 @@ export const addRating = async (req: IJwtRequest, res: Response) => {
         const updatedBook = updatedBookResult.rows[0] as IBookDB;
         const formattedBook: IBook = formatBookResponse(updatedBook);
 
-        await client.query('COMMIT');
-
-        const newBook = parseBookResult(
-            await client.query('SELECT * FROM books WHERE id = $1', [bookId])
-        )[0];
-
         return res.status(201).json({
             message: `Updated ratings for book (${bookId})`,
-            data: formattedBook
+            data: formattedBook,
         });
     } catch (error) {
         // If any error occurs when modifying database, revert any changed made

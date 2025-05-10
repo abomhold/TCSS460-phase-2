@@ -28,7 +28,7 @@ export interface IUrlIcon {
 export interface IBook {
     isbn13: number;
     authors: string;
-    publication: number;  // Publication year
+    publication: number; // Publication year
     original_title: string;
     title: string;
     ratings: IRatings;
@@ -76,11 +76,11 @@ export function formatBookResponse(dbBook: IBookDB): IBook {
             rating_2: dbBook.rating_2_star,
             rating_3: dbBook.rating_3_star,
             rating_4: dbBook.rating_4_star,
-            rating_5: dbBook.rating_5_star
+            rating_5: dbBook.rating_5_star,
         },
         icons: {
             large: dbBook.image_url,
-            small: dbBook.image_small_url
-        }
+            small: dbBook.image_small_url,
+        },
     };
 }

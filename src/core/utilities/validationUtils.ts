@@ -68,7 +68,7 @@ function isValidISBN(isbn: unknown): boolean {
     return false;
 }
 
-export function isValidRating(rating: unknown): boolean{
+export function isValidRating(rating: unknown): boolean {
     if (!isNumberProvided(rating)) {
         return false;
     }
@@ -118,7 +118,7 @@ const validationFunctions = {
     isNumberProvided,
     isValidISBN,
     isValidQuery,
-    isValidRating
+    isValidRating,
 };
 
 export { validationFunctions };

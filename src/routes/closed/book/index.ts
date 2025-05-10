@@ -175,6 +175,8 @@ bookRouter.post('/', createBook);
  *             "large": "https://example.com/image.jpg",
  *             "small": "https://example.com/small.jpg"
  *           }
+ *         }, {
+ *           ...
  *         }
  *       ],
  *       "pagination": {
@@ -215,6 +217,7 @@ bookRouter.post('/', createBook);
  */
 bookRouter.get('/', getByQuery);
 
+// TODO: Update documentation to reflect new book structure
 /**
  * @api {get} /c/book/rating Get Books by Minimum Average Rating
  * @apiName GetBookByRating
