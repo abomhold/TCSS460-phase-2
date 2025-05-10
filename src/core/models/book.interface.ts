@@ -26,6 +26,7 @@ export interface IUrlIcon {
  * Defines the structure for book objects in HTTP responses
  */
 export interface IBook {
+    id: number;
     isbn13: number;
     authors: string;
     publication: number; // Publication year
@@ -64,6 +65,7 @@ export interface IBookDB {
  */
 export function formatBookResponse(dbBook: IBookDB): IBook {
     return {
+        id: dbBook.id,
         isbn13: dbBook.isbn13,
         authors: dbBook.authors,
         publication: dbBook.publication_year,

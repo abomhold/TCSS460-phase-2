@@ -5,6 +5,7 @@ import { getByBookId } from './getByBookId';
 import { addRating } from './addRating';
 import { updateRating } from './updateRating';
 import { removeRating } from './removeRating';
+// TODO: Use these functions to delete books by ISBN or authors
 import { removeBookByAuthors, removeBookByIsbn } from './removeBook';
 import { getByRating } from './getByRating';
 
