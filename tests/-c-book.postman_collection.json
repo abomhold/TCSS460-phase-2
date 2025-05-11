@@ -228,7 +228,36 @@
 							"pm.test(\"Previously created book exists\", function () {",
 							"    var jsonData = pm.response.json();",
 							"    pm.expect(jsonData.data.length).to.be.gte(1);",
-							"});"
+							"});",
+							"pm.test(\"Returned book matches expected structure\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var book = jsonData.data[0];",
+							"    pm.expect(book).to.have.property(\"id\");",
+							"    pm.expect(book).to.have.property(\"isbn13\");",
+							"    pm.expect(book).to.have.property(\"authors\");",
+							"    pm.expect(book).to.have.property(\"publication\");",
+							"    pm.expect(book).to.have.property(\"original_title\");",
+							"    pm.expect(book).to.have.property(\"title\");",
+							"    pm.expect(book).to.have.property(\"ratings\");",
+							"    pm.expect(book.ratings).to.have.property(\"average\");",
+							"    pm.expect(book.ratings).to.have.property(\"count\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_1\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_2\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_3\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_4\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_5\");",
+							"    pm.expect(book).to.have.property(\"icons\");",
+							"    pm.expect(book.icons).to.have.property(\"large\");",
+							"    pm.expect(book.icons).to.have.property(\"small\");",
+							"})",
+							"pm.test(\"Returned book matches book created\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var book = jsonData.data[0];",
+							"    var createdBook = JSON.parse(pm.collectionVariables.get('book'));",
+							"    console.log(book)",
+							"    console.log(createdBook)",
+							"    pm.expect(book).to.deep.equal(createdBook);",
+							"})"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -289,6 +318,38 @@
 							"        pm.collectionVariables.get(\"random_page_limit\")",
 							"    );",
 							"});",
+							"pm.test(\"Structure of response is correct\", function() {",
+							"    var jsonData = pm.response.json();",
+							"    var book = jsonData.data[0];",
+							"    pm.expect(book).to.have.property(\"id\");",
+							"    pm.expect(book).to.have.property(\"isbn13\");",
+							"    pm.expect(book).to.have.property(\"authors\");",
+							"    pm.expect(book).to.have.property(\"publication\");",
+							"    pm.expect(book).to.have.property(\"original_title\");",
+							"    pm.expect(book).to.have.property(\"title\");",
+							"    pm.expect(book).to.have.property(\"ratings\");",
+							"    pm.expect(book.ratings).to.have.property(\"average\");",
+							"    pm.expect(book.ratings).to.have.property(\"count\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_1\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_2\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_3\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_4\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_5\");",
+							"    pm.expect(book).to.have.property(\"icons\");",
+							"    pm.expect(book.icons).to.have.property(\"large\");",
+							"    pm.expect(book.icons).to.have.property(\"small\");",
+							"})",
+							"pm.test(\"Pagination data is present and correct\", function() {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"pagination\");",
+							"    pm.expect(jsonData.pagination).to.have.property(\"page\");",
+							"    pm.expect(jsonData.pagination).to.have.property(\"limit\");",
+							"    pm.expect(jsonData.pagination).to.have.property(\"total_count\");",
+							"    var sentLimit = pm.collectionVariables.get(\"random_page_limit\")",
+							"    var sentPage = pm.collectionVariables.get(\"random_page_number\")",
+							"    pm.expect(jsonData.pagination.page).to.be.eql(sentPage)",
+							"    pm.expect(jsonData.pagination.limit).to.be.eql(sentLimit)",
+							"})",
 							""
 						],
 						"type": "text/javascript",
@@ -342,8 +403,12 @@
 							"pm.test(\"Status code is 400\", function () {",
 							"    pm.response.to.have.status(400);",
 							"});",
-							"pm.test(\"Body matches string\", function () {",
+							"pm.test(\"Body message says 'incorrect'\", function () {",
 							"    pm.expect(pm.response.text().toLowerCase()).to.include(\"invalid\");",
+							"});",
+							"pm.test(\"Body data is an empty array\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.expect(responseJson.data).to.eql([]);",
 							"});"
 						],
 						"type": "text/javascript",
@@ -386,7 +451,36 @@
 							"pm.test(\"Created book exists\", function () {",
 							"    var jsonData = pm.response.json();",
 							"    pm.expect(jsonData.data.length).to.be.gt(0);",
-							"});"
+							"});",
+							"pm.test(\"Returned book matches expected structure\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var book = jsonData.data[0];",
+							"    pm.expect(book).to.have.property(\"id\");",
+							"    pm.expect(book).to.have.property(\"isbn13\");",
+							"    pm.expect(book).to.have.property(\"authors\");",
+							"    pm.expect(book).to.have.property(\"publication\");",
+							"    pm.expect(book).to.have.property(\"original_title\");",
+							"    pm.expect(book).to.have.property(\"title\");",
+							"    pm.expect(book).to.have.property(\"ratings\");",
+							"    pm.expect(book.ratings).to.have.property(\"average\");",
+							"    pm.expect(book.ratings).to.have.property(\"count\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_1\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_2\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_3\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_4\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_5\");",
+							"    pm.expect(book).to.have.property(\"icons\");",
+							"    pm.expect(book.icons).to.have.property(\"large\");",
+							"    pm.expect(book.icons).to.have.property(\"small\");",
+							"})",
+							"pm.test(\"Returned book matches book created\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var book = jsonData.data[0];",
+							"    var createdBook = JSON.parse(pm.collectionVariables.get('book'));",
+							"    console.log(book)",
+							"    console.log(createdBook)",
+							"    pm.expect(book).to.deep.equal(createdBook);",
+							"})"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -495,13 +589,35 @@
 							"pm.test(\"Status code is 200\", function () {",
 							"    pm.response.to.have.status(200);",
 							"});",
-							"pm.test(\"Returned book is correct\", function () {",
+							"pm.test(\"Returned book matches expected structure\", function () {",
 							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.data.length).to.eql(1)",
-							"    pm.expect(jsonData.data[0].id).to.eql(",
-							"        pm.collectionVariables.get('id')",
-							"    );",
-							"});"
+							"    var book = jsonData.data[0];",
+							"    pm.expect(book).to.have.property(\"id\");",
+							"    pm.expect(book).to.have.property(\"isbn13\");",
+							"    pm.expect(book).to.have.property(\"authors\");",
+							"    pm.expect(book).to.have.property(\"publication\");",
+							"    pm.expect(book).to.have.property(\"original_title\");",
+							"    pm.expect(book).to.have.property(\"title\");",
+							"    pm.expect(book).to.have.property(\"ratings\");",
+							"    pm.expect(book.ratings).to.have.property(\"average\");",
+							"    pm.expect(book.ratings).to.have.property(\"count\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_1\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_2\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_3\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_4\");",
+							"    pm.expect(book.ratings).to.have.property(\"rating_5\");",
+							"    pm.expect(book).to.have.property(\"icons\");",
+							"    pm.expect(book.icons).to.have.property(\"large\");",
+							"    pm.expect(book.icons).to.have.property(\"small\");",
+							"})",
+							"pm.test(\"Returned book matches book created\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var book = jsonData.data[0];",
+							"    var createdBook = JSON.parse(pm.collectionVariables.get('book'));",
+							"    console.log(book)",
+							"    console.log(createdBook)",
+							"    pm.expect(book).to.deep.equal(createdBook);",
+							"})"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -553,6 +669,220 @@
 						"c",
 						"book",
 						"{{$randomFirstName}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DEL Book (No params)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/c/book",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"c",
+						"book"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DEL Book by ISBN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Data array is only of length 1\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.length).to.equal(1);",
+							"})",
+							"pm.test(\"Deleted book matches book created\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var book = jsonData.data[0];",
+							"    var createdBook = JSON.parse(pm.collectionVariables.get('book'));",
+							"    console.log(book)",
+							"    console.log(createdBook)",
+							"    pm.expect(book).to.deep.equal(createdBook);",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/c/book?isbn13={{isbn}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"c",
+						"book"
+					],
+					"query": [
+						{
+							"key": "isbn13",
+							"value": "{{isbn}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DEL Book by ISBN (Doesn't exist)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"pm.test(\"Data array is empty\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.length).to.equal(0);",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/c/book?isbn13={{isbn}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"c",
+						"book"
+					],
+					"query": [
+						{
+							"key": "isbn13",
+							"value": "{{isbn}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DEL Book by Author",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Data array is of length greater than 1\", function() {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.length).to.be.gt(1)",
+							"});",
+							"pm.test(\"All returned books have correct author\", function() {",
+							"    var jsonData = pm.response.json();",
+							"    jsonData.data.forEach((book) => {",
+							"        pm.expect(book.authors.toLowerCase()).to.include(\"rowling\")",
+							"    })",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/c/book?authors=rowling",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"c",
+						"book"
+					],
+					"query": [
+						{
+							"key": "authors",
+							"value": "rowling"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DEL Book by Author (Doesn't exist)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"pm.test(\"Data array is of length 0\", function() {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.length).to.be.eq(0)",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/c/book?authors=rowling",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"c",
+						"book"
+					],
+					"query": [
+						{
+							"key": "authors",
+							"value": "rowling"
+						}
 					]
 				}
 			},

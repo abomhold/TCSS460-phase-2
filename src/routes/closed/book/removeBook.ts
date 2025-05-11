@@ -1,4 +1,3 @@
-// TODO: Return deleted book details in required format
 import { pool } from '../../../core/utilities';
 import { Request, Response, NextFunction } from 'express';
 import { validationFunctions } from '../../../core/utilities';
@@ -16,13 +15,15 @@ export const removeBookByIsbn = async (
         return next();
     }
     if (!isValidISBN(isbn13 as string)) {
-        return res.status(400).json({ error: 'Invalid ISBN format' });
+        return res.status(400).json({ message: 'Invalid ISBN format' });
     }
     const query = 'DELETE FROM books WHERE isbn13 = $1 RETURNING *';
     try {
         const result = await pool.query(query, [isbn13]);
         if (result.rowCount === 0) {
-            return res.status(404).json({ error: 'Books not found' });
+            return res
+                .status(404)
+                .json({ message: 'Books not found', data: [] });
         }
         const deletedBooks = result.rows;
         return res.status(200).json({
@@ -31,29 +32,34 @@ export const removeBookByIsbn = async (
         });
     } catch (error) {
         console.error('Error deleting books at DELETE /c/book?isbn=...', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 };
 
 export const removeBookByAuthors = async (req: Request, res: Response) => {
     const { authors } = req.query;
     if (!authors) {
-        return res.status(400).json({ error: 'Authors or ISBN are required' });
+        return res
+            .status(400)
+            .json({ message: 'Authors or ISBN are required' });
     }
     const authorList = (authors as string)
         .split(',')
         .map((author) => author.trim().toLowerCase())
         .join(', ');
     if (authorList.split(', ').join('').length < 3) {
-        return res
-            .status(400)
-            .json({ error: 'Authors must be at least 3 characters long.' });
+        return res.status(400).json({
+            message: 'Authors must be at least 3 characters long.',
+            data: [],
+        });
     }
     const query = 'DELETE FROM books WHERE LOWER(authors) LIKE $1 RETURNING *';
     try {
         const result = await pool.query(query, [`%${authorList}%`]);
         if (result.rowCount === 0) {
-            return res.status(404).json({ error: 'Books not found' });
+            return res
+                .status(404)
+                .json({ message: 'Books not found', data: [] });
         }
         const deletedBooks = result.rows;
         return res.status(200).json({
@@ -65,6 +71,6 @@ export const removeBookByAuthors = async (req: Request, res: Response) => {
             'Error deleting books at DELETE /c/book?authors=...',
             error
         );
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 };

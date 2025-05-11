@@ -701,6 +701,8 @@ bookRouter.delete('/:bookId/rating', removeRating);
  *             "large": "https://cdn.example.com/book_large.jpg",
  *             "small": "https://cdn.example.com/book_small.jpg"
  *           }
+ *         }, {
+ *           ...
  *         }
  *       ]
  *     }
@@ -709,35 +711,36 @@ bookRouter.delete('/:bookId/rating', removeRating);
  * @apiErrorExample {json} Invalid ISBN:
  *     HTTP/1.1 400 Bad Request
  *     {
- *       "error": "Invalid ISBN format"
+ *       "message": "Invalid ISBN format"
  *     }
  *
  * @apiError (400 Bad Request) MissingParameters Neither ISBN13 nor authors were provided.
  * @apiErrorExample {json} Missing Parameters:
  *     HTTP/1.1 400 Bad Request
  *     {
- *       "error": "Authors or ISBN are required"
+ *       "message": "Authors or ISBN are required"
  *     }
  *
  * @apiError (400 Bad Request) ShortAuthorName Author names are too short to search.
  * @apiErrorExample {json} Short Author Name:
  *     HTTP/1.1 400 Bad Request
  *     {
- *       "error": "Authors must be at least 3 characters long."
+ *       "message": "Authors must be at least 3 characters long."
  *     }
  *
  * @apiError (404 Not Found) BookNotFound No matching books found.
  * @apiErrorExample {json} No Books Found:
  *     HTTP/1.1 404 Not Found
  *     {
- *       "error": "Books not found"
+ *       "message": "Books not found"
+ *       "data": []
  *     }
  *
  * @apiError (500 Internal Server Error) ServerError Error occurred during deletion.
  * @apiErrorExample {json} Server Error:
  *     HTTP/1.1 500 Internal Server Error
  *     {
- *       "error": "Internal server error"
+ *       "message": "Internal server error"
  *     }
  */
 bookRouter.delete('/', removeBookByIsbn, removeBookByAuthors);
