@@ -1,0 +1,349 @@
+{
+    "info": {
+        "name": "Book Rating Filter",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Register for JWT",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "const firstname = pm.variables.replaceIn('{{$randomFirstName}}')",
+                            "const lastname = pm.variables.replaceIn('{{$randomLastName}}')",
+                            "const email = pm.variables.replaceIn('{{$randomEmail}}')",
+                            "const password = pm.variables.replaceIn('{{$randomPassword}}')",
+                            "const username = `${firstname}-${lastname}`",
+                            "const role = Math.floor(Math.random() * 5 + 1)",
+                            "const phone = pm.variables.replaceIn('{{$randomPhoneNumber}}')",
+                            "",
+                            "const body = {",
+                            "    firstname,",
+                            "    lastname,",
+                            "    email,",
+                            "    password,",
+                            "    username,",
+                            "    role,",
+                            "    phone",
+                            "}",
+                            "",
+                            "pm.collectionVariables.set('user', JSON.stringify(body))"
+                        ],
+                        "type": "text/javascript"
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "pm.test(\"Access token present\", function () {",
+                            "    var jsonData = pm.response.json();",
+                            "    const token = jsonData.accessToken;",
+                            "    pm.expect(token).to.not.be.empty",
+                            "    pm.collectionVariables.set('JWT', token)",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{{user}}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/register",
+                    "host": ["{{base_url}}"],
+                    "path": ["register"]
+                }
+            }
+        },
+        {
+            "name": "Get Books by Rating - Valid",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "// Generate a random rating between 0 and 5",
+                            "const rating = Math.floor(Math.random() * 6);",
+                            "pm.collectionVariables.set('testRating', rating);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "",
+                            "pm.test(\"Response has correct structure\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response).to.have.property('message');",
+                            "    pm.expect(response).to.have.property('data');",
+                            "    pm.expect(response.data).to.be.an('array');",
+                            "});",
+                            "",
+                            "pm.test(\"Book ratings meet the criteria\", function () {",
+                            "    const response = pm.response.json();",
+                            "    const rating = pm.collectionVariables.get('testRating');",
+                            "    ",
+                            "    if (response.data.length > 0) {",
+                            "        // Test that all books have at least the specified rating",
+                            "        const allMeetCriteria = response.data.every(book => book.rating_avg >= rating);",
+                            "        pm.expect(allMeetCriteria).to.be.true;",
+                            "    }",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/c/book/rating?rating={{testRating}}",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "rating"],
+                    "query": [
+                        {
+                            "key": "rating",
+                            "value": "{{testRating}}"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Books by Rating - No Parameter",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "",
+                            "pm.test(\"Response has correct structure\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response).to.have.property('message');",
+                            "    pm.expect(response).to.have.property('data');",
+                            "    pm.expect(response.data).to.be.an('array');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/c/book/rating",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "rating"]
+                }
+            }
+        },
+        {
+            "name": "Get Books by Rating - Invalid Rating",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "// Generate an invalid rating (randomly either a negative value or greater than 5)",
+                            "let invalidRating;",
+                            "if (Math.random() < 0.5) {",
+                            "    invalidRating = Math.floor(Math.random() * -10) - 1; // Negative rating",
+                            "} else {",
+                            "    invalidRating = Math.floor(Math.random() * 10) + 6; // Rating > 5",
+                            "}",
+                            "pm.collectionVariables.set('invalidRating', invalidRating);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 400\", function () {",
+                            "    pm.response.to.have.status(400);",
+                            "});",
+                            "",
+                            "pm.test(\"Response contains error message about invalid rating\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response).to.have.property('message');",
+                            "    pm.expect(response.message.toLowerCase()).to.include('invalid rating');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/c/book/rating?rating={{invalidRating}}",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "rating"],
+                    "query": [
+                        {
+                            "key": "rating",
+                            "value": "{{invalidRating}}"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Books by Rating - Non-numeric Rating",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 400\", function () {",
+                            "    pm.response.to.have.status(400);",
+                            "});",
+                            "",
+                            "pm.test(\"Response contains error message about invalid rating\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response).to.have.property('message');",
+                            "    pm.expect(response.message.toLowerCase()).to.include('invalid rating');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/c/book/rating?rating=abc",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "rating"],
+                    "query": [
+                        {
+                            "key": "rating",
+                            "value": "abc"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Books by Rating - High Rating (4+)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "",
+                            "pm.test(\"Response has correct structure\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response).to.have.property('message');",
+                            "    pm.expect(response).to.have.property('data');",
+                            "    pm.expect(response.data).to.be.an('array');",
+                            "});",
+                            "",
+                            "pm.test(\"Book ratings are at least 4\", function () {",
+                            "    const response = pm.response.json();",
+                            "    ",
+                            "    if (response.data.length > 0) {",
+                            "        // Test that all books have at least the specified rating",
+                            "        const allMeetCriteria = response.data.every(book => book.rating_avg >= 4);",
+                            "        pm.expect(allMeetCriteria).to.be.true;",
+                            "    }",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/c/book/rating?rating=4",
+                    "host": ["{{base_url}}"],
+                    "path": ["c", "book", "rating"],
+                    "query": [
+                        {
+                            "key": "rating",
+                            "value": "4"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{JWT}}",
+                "type": "string"
+            }
+        ]
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [""]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [""]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "user",
+            "value": ""
+        },
+        {
+            "key": "JWT",
+            "value": ""
+        },
+        {
+            "key": "testRating",
+            "value": ""
+        },
+        {
+            "key": "invalidRating",
+            "value": ""
+        }
+    ]
+}
