@@ -218,7 +218,7 @@ bookRouter.post('/', createBook);
 bookRouter.get('/', getByQuery);
 
 /**
- * @api {get} /c/rating Get Books by Minimum Average Rating
+ * @api {get} /c/book Get Books by Minimum Average Rating
  * @apiName GetBookByRating
  * @apiGroup Book
  *
