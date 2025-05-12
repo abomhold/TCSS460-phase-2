@@ -5,7 +5,6 @@ import { getByBookId } from './getByBookId';
 import { addRating } from './addRating';
 import { updateRating } from './updateRating';
 import { removeRating } from './removeRating';
-// TODO: Use these functions to delete books by ISBN or authors
 import { removeBookByAuthors, removeBookByIsbn } from './removeBook';
 import { getByRating } from './getByRating';
 
@@ -32,7 +31,7 @@ const bookRouter: Router = express.Router();
  * @apiBody {String} [image_small_url] URL to the small book image (optional)
  *
  * @apiSuccess (201) {String} message Success message
- * @apiSuccess (201) {Object} data The created book object
+ * @apiSuccess (201) {IBook} data The created book object
  * @apiSuccess {Number} data.isbn13 ISBN-13 of the book
  * @apiSuccess {String} data.authors Authors of the book
  * @apiSuccess {Number} data.publication Publication year of the book
@@ -129,7 +128,7 @@ bookRouter.post('/', createBook);
  * @apiQuery {Number} [limit=25] Number of results per page.
  *
  * @apiSuccess {String} message Description of how many books were found.
- * @apiSuccess {Object[]} data Array of matching book objects.
+ * @apiSuccess {IBook[]} data Array of matching book objects.
  * @apiSuccess {Number} data.isbn13 ISBN-13 of the book
  * @apiSuccess {String} data.authors Authors of the book
  * @apiSuccess {Number} data.publication Publication year of the book
@@ -191,34 +190,33 @@ bookRouter.post('/', createBook);
  * @apiErrorExample {json} Error Response (Invalid Parameters):
  * HTTP/1.1 400 Bad Request
  * {
- * "message": "Invalid query parameters",
- * "data": []
+ *  "message": "Invalid query parameters",
+ *  "data": []
  * }
  *
  * @apiError (404 Not Found) {String} message Book not found.
  * @apiErrorExample {json} Error Response (Not Found):
  * HTTP/1.1 404 Not Found
  * {
- * "message": "Book not found.",
- * "data": [],
+ *   "message": "Book not found.",
+ *      "data": [],
  * "pagination": {
- * "total_count": 0,
- * "page": 0,
- * "limit": 25
- * }
+ *      "total_count": 0,
+ *      "page": 0,
+ *      "limit": 25
+ *      }
  * }
  *
  * @apiError (500 Internal Server Error) {String} message Internal server error.
  * @apiErrorExample {json} Error Response (Internal Error):
  * HTTP/1.1 500 Internal Server Error
  * {
- * "message": "Internal Server Error",
- * "data": []
+ *      "message": "Internal Server Error",
+ *      "data": []
  * }
  */
 bookRouter.get('/', getByQuery);
 
-// TODO: Update documentation to reflect new book structure
 /**
  * @api {get} /c/book/rating Get Books by Minimum Average Rating
  * @apiName GetBookByRating
@@ -230,7 +228,7 @@ bookRouter.get('/', getByQuery);
  * @apiQuery {Number{0-5}} [rating] Minimum average rating for the books (e.g., 3.5). If not provided, defaults to 0.
  *
  * @apiSuccess (200) {String} message Description of how many books were found.
- * @apiSuccess (200) {Object[]} data Array of matching book objects.
+ * @apiSuccess (200) {IBook[]} data Array of matching book objects.
  * @apiSuccess {Number} data.id Unique ID of the book.
  * @apiSuccess {String} data.isbn13 ISBN-13 identifier of the book.
  * @apiSuccess {String} data.authors Author(s) of the book.
@@ -247,31 +245,33 @@ bookRouter.get('/', getByQuery);
  * @apiSuccess {String} data.image_url URL to the book's image.
  * @apiSuccess {String} data.image_small_url URL to the small book image.
  *
- * @apiSuccessExample {json} Success Response (Books with rating >= 4):
- * HTTP/1.1 200 OK
- * {
- * "message": "(15) Book(s) found.",
- * "data": [
- * {
- * "id": 1,
- * "isbn13": "9780439023480",
- * "authors": "Suzanne Collins",
- * "publication_year": 2008,
- * "original_title": "The Hunger Games",
- * "title": "The Hunger Games (The Hunger Games, #1)",
- * "rating_avg": 4.34,
- * "rating_count": 4780653,
- * "rating_1_star": 66715,
- * "rating_2_star": 127936,
- * "rating_3_star": 560092,
- * "rating_4_star": 1481305,
- * "rating_5_star": 2706317,
- * "image_url": "https://images.gr-assets.com/books/1447303603m/2767052.jpg",
- * "image_small_url": "https://images.gr-assets.com/books/1447303603s/2767052.jpg"
- * }
- * // ... other books
- * ]
- * }
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "message": " (5213) Book(s) found.",
+ *       "data": [
+ *         {
+ *           "isbn13": 9780439023480,
+ *           "authors": "Suzanne Collins",
+ *           "publication": 2008,
+ *           "original_title": "The Hunger Games",
+ *           "title": "The Hunger Games (The Hunger Games, #1)",
+ *           "ratings": {
+ *             "average": 4.34,
+ *             "count": 4780653,
+ *             "rating_1": 66715,
+ *             "rating_2": 127936,
+ *             "rating_3": 560092,
+ *             "rating_4": 1481305,
+ *             "rating_5": 2706317
+ *           },
+ *           "icons": {
+ *             "large": "https://images.gr-assets.com/books/1447303603m/2767052.jpg",
+ *             "small": "https://images.gr-assets.com/books/1447303603s/2767052.jpg"
+ *           }
+ *         }
+ *       ]
+ *     }
  *
  * @apiError (Error 400) {String} message Invalid rating format.
  * @apiErrorExample {json} Error Response (Invalid Rating Format):
@@ -310,7 +310,8 @@ bookRouter.get('/rating', getByRating);
  * @apiParam {Number} bookId The unique ID of the book to retrieve.
  *
  * @apiSuccess (200) {String} message Description of how many books were found (should be 1).
- * @apiSuccess (200) {Object[]} data Array containing the matching book object.
+ * @apiSuccess (200) {Ibook} data The matching book object.
+ *
  * @apiSuccess {Number} data.isbn13 ISBN-13 of the book
  * @apiSuccess {String} data.authors Authors of the book
  * @apiSuccess {Number} data.publication Publication year of the book
