@@ -7,11 +7,11 @@ import {
 } from '../../../core/models/book.interface';
 
 /**
-* Retrieves books with rating equal to or higher than specified value
-* 
-* @param {Request} req - Express request object
-* @param {Response} res - Express response object
-*/
+ * Retrieves books with rating equal to or higher than specified value
+ *
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ */
 export const getByRating = async (req: Request, res: Response) => {
     // Check if rating parameter is valid
     if (req.query.rating && !isValidRating(req.query.rating)) {
@@ -23,7 +23,7 @@ export const getByRating = async (req: Request, res: Response) => {
     } else {
         const minRating = Number(req.query.rating);
         const theQuery = 'SELECT * FROM books WHERE rating_avg >= $1';
- 
+
         pool.query(theQuery, [minRating || 0])
             .then((result) => {
                 if (result.rowCount === 0) {
@@ -52,4 +52,4 @@ export const getByRating = async (req: Request, res: Response) => {
                 });
             });
     }
- };
+};
