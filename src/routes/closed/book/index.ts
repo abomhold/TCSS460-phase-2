@@ -175,9 +175,8 @@ bookRouter.post('/', createBook);
  *             "large": "https://example.com/image.jpg",
  *             "small": "https://example.com/small.jpg"
  *           }
- *         }, {
- *           ...
- *         }
+ *         },
+ *         ...,
  *       ],
  *       "pagination": {
  *         "total_count": 52,
