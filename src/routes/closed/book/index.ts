@@ -246,17 +246,17 @@ bookRouter.get('/', getByQuery);
  * @apiSuccess {String} data.image_small_url URL to the small book image.
  *
  * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 200 OK
+ * HTTP/1.1 200 OK
+ * {
+ *     "message": " (5213) Book(s) found.",
+ *     "data": [
  *     {
- *       "message": " (5213) Book(s) found.",
- *       "data": [
- *         {
- *           "isbn13": 9780439023480,
- *           "authors": "Suzanne Collins",
- *           "publication": 2008,
- *           "original_title": "The Hunger Games",
- *           "title": "The Hunger Games (The Hunger Games, #1)",
- *           "ratings": {
+ *         "isbn13": 9780439023480,
+ *         "authors": "Suzanne Collins",
+ *         "publication": 2008,
+ *         "original_title": "The Hunger Games",
+ *         "title": "The Hunger Games (The Hunger Games, #1)",
+ *         "ratings": {
  *             "average": 4.34,
  *             "count": 4780653,
  *             "rating_1": 66715,
@@ -269,7 +269,8 @@ bookRouter.get('/', getByQuery);
  *             "large": "https://images.gr-assets.com/books/1447303603m/2767052.jpg",
  *             "small": "https://images.gr-assets.com/books/1447303603s/2767052.jpg"
  *           }
- *         }
+ *         },
+ *         ...,
  *       ]
  *     }
  *
