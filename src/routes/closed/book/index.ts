@@ -111,7 +111,7 @@ const bookRouter: Router = express.Router();
 bookRouter.post('/', createBook);
 
 /**
- * @api {get} /book Request to retrieve book(s) with filtering and pagination
+ * @api {get} /c/book Request to retrieve book(s) with filtering and pagination
  * @apiName GetBookByQuery
  * @apiGroup Book
  *
@@ -129,6 +129,7 @@ bookRouter.post('/', createBook);
  *
  * @apiSuccess {String} message Description of how many books were found.
  * @apiSuccess {IBook[]} data Array of matching book objects.
+ * @apiSuccess {Number} data.id Unique ID of the book.
  * @apiSuccess {Number} data.isbn13 ISBN-13 of the book
  * @apiSuccess {String} data.authors Authors of the book
  * @apiSuccess {Number} data.publication Publication year of the book
@@ -157,6 +158,7 @@ bookRouter.post('/', createBook);
  *       "message": "(2) Book(s) found.",
  *       "data": [
  *         {
+ *           "id": 123,
  *           "isbn13": 9781234567890,
  *           "authors": "Jane Doe",
  *           "publication": 2020,
